@@ -1,0 +1,59 @@
+---
+import Base from '../layouts/Base.astro';
+---
+
+<Base title="404 | BLACK RAM" description="ページが見つかりません。" noindex>
+  <main id="main" class="nf">
+    <a href="/" class="logo" aria-label="BLACK RAM トップへ">
+      <img src="/logo/logo-full.webp" width="1200" height="1166" alt="BLACK RAM" fetchpriority="high" />
+    </a>
+    <div class="body">
+      <p class="code">404</p>
+      <h1 class="msg">ページが見つかりません</h1>
+      <a class="btn" href="/"><span class="ja">トップへ戻る</span></a>
+    </div>
+  </main>
+</Base>
+
+<style>
+  .nf {
+    min-height: 100dvh;
+    display: grid;
+    align-content: center;
+    gap: 48px;
+    padding: 64px var(--gutter) 96px;
+    max-width: var(--max);
+    margin-inline: auto;
+  }
+
+  .logo {
+    display: block;
+    width: min(70vw, 360px);
+  }
+
+  .code {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: clamp(96px, 60px + 10vw, 200px);
+    line-height: 0.85;
+    letter-spacing: -0.01em;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .msg {
+    font-size: 20px;
+    font-weight: 700;
+    line-height: 1.5;
+    letter-spacing: 0.02em;
+    text-wrap: balance;
+    margin: 16px 0 32px;
+  }
+
+  @media (min-width: 1200px) {
+    .nf {
+      grid-template-columns: auto 1fr;
+      align-items: end;
+      gap: 96px;
+    }
+  }
+</style>

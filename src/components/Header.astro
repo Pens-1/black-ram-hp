@@ -1,0 +1,260 @@
+---
+import Icon from './Icon.astro';
+import { nav, social } from '../data/site';
+---
+
+<header class="site-header" data-header>
+  <div class="bar">
+    <a class="brand" href="/#top" aria-label="BLACK RAM トップへ">
+      <img src="/logo/logo-wordmark-sm.webp" width="360" height="109" alt="BLACK RAM" />
+    </a>
+
+    <nav class="nav-desktop" aria-label="メインメニュー">
+      <ul>
+        {
+          nav.map((n) => (
+            <li>
+              <a href={`/#${n.id}`} data-nav={n.id}>
+                {n.label}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+
+    <ul class="sns" aria-label="SNS">
+      {
+        social.map((s) => (
+          <li>
+            <a href={s.href} target="_blank" rel="noopener" aria-label={`${s.name}（新しいタブで開く）`}>
+              <Icon name={s.icon} size={22} />
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+
+    <button
+      class="menu-btn"
+      type="button"
+      aria-expanded="false"
+      aria-controls="menu"
+      data-menu-btn
+    >
+      <span class="menu-open"><Icon name="list" size={28} /></span>
+      <span class="menu-close"><Icon name="close" size={28} /></span>
+      <span class="sr-only" data-menu-label>メニューを開く</span>
+    </button>
+  </div>
+
+  <div class="menu" id="menu" data-menu hidden>
+    <nav aria-label="メニュー">
+      <ul class="menu-list">
+        {
+          nav.map((n, i) => (
+            <li style={`--i:${i}`}>
+              <a href={`/#${n.id}`} data-nav={n.id} data-menu-link>
+                {n.label}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+    <ul class="menu-sns">
+      {
+        social.map((s) => (
+          <li>
+            <a href={s.href} target="_blank" rel="noopener" class="ext">
+              {s.name}
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</header>
+
+<style>
+  .site-header {
+    position: fixed;
+    inset: 0 0 auto;
+    z-index: 10;
+    transition: background-color 220ms var(--ease);
+  }
+
+  .site-header.is-scrolled,
+  .site-header.is-open {
+    background: rgb(13 12 11 / 0.9);
+  }
+
+  .site-header.is-open {
+    z-index: 20;
+  }
+
+  .bar {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    height: var(--header-h);
+    max-width: var(--max);
+    margin-inline: auto;
+    padding-inline: var(--gutter);
+  }
+
+  .brand {
+    display: flex;
+    align-items: center;
+    min-height: 44px;
+    margin-right: auto;
+  }
+
+  .brand img {
+    height: 28px;
+    width: auto;
+  }
+
+  .nav-desktop {
+    display: none;
+  }
+
+  .nav-desktop ul {
+    display: flex;
+    gap: 4px;
+  }
+
+  .nav-desktop a {
+    display: flex;
+    align-items: center;
+    min-height: 44px;
+    padding-inline: 10px;
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 18px;
+    line-height: 1;
+    letter-spacing: 0.06em;
+    text-decoration: none;
+    text-underline-offset: 0.35em;
+  }
+
+  .nav-desktop a:hover,
+  .nav-desktop a[aria-current='true'] {
+    text-decoration: underline;
+    text-decoration-thickness: 2px;
+  }
+
+  .sns {
+    display: none;
+    gap: 2px;
+  }
+
+  .sns a,
+  .menu-btn {
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    color: var(--bone);
+  }
+
+  .sns a:hover {
+    background: var(--char);
+  }
+
+  .menu-close {
+    display: none;
+  }
+
+  .is-open .menu-open {
+    display: none;
+  }
+
+  .is-open .menu-close {
+    display: block;
+  }
+
+  .menu {
+    position: fixed;
+    inset: var(--header-h) 0 0;
+    background: var(--char);
+    padding: 32px var(--gutter) 48px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  .menu[hidden] {
+    display: none;
+  }
+
+  .menu-list a {
+    display: block;
+    padding-block: 6px;
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: clamp(48px, 14vw, 72px);
+    line-height: 1;
+    letter-spacing: -0.01em;
+    text-decoration: none;
+  }
+
+  .menu-list a:hover,
+  .menu-list a[aria-current='true'] {
+    text-decoration: underline;
+    text-decoration-thickness: 3px;
+    text-underline-offset: 0.12em;
+  }
+
+  .menu-sns {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 24px;
+    padding-top: 32px;
+  }
+
+  .menu-sns a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 18px;
+    letter-spacing: 0.06em;
+    text-decoration: none;
+    text-underline-offset: 0.35em;
+  }
+
+  .menu-sns a:hover {
+    text-decoration: underline;
+    text-decoration-thickness: 2px;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .menu:not([hidden]) .menu-list li {
+      animation: menu-in 260ms var(--ease) both;
+      animation-delay: calc(var(--i) * 40ms);
+    }
+  }
+
+  @keyframes menu-in {
+    from {
+      opacity: 0;
+      transform: translateY(12px);
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .nav-desktop,
+    .sns {
+      display: flex;
+    }
+
+    .menu-btn,
+    .menu {
+      display: none !important;
+    }
+  }
+</style>

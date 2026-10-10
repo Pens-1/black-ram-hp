@@ -1,0 +1,103 @@
+---
+import { goods, srcset } from '../data/site';
+const [main, ...rest] = goods;
+---
+
+<section class="section" id="goods" aria-labelledby="goods-title">
+  <div class="wrap layout">
+    <h2 class="section-title head" id="goods-title" data-reveal>GOODS</h2>
+    {
+      main && (
+        <figure class="main grain" data-reveal>
+          <img
+            src={`${main.src}.webp`}
+            srcset={srcset(main)}
+            sizes="(min-width: 768px) 58vw, 100vw"
+            width={main.w}
+            height={main.h}
+            alt={main.alt}
+            loading="lazy"
+            decoding="async"
+          />
+        </figure>
+      )
+    }
+    <ul class="rest">
+      {
+        rest.map((g, i) => (
+          <li class="grain" data-reveal style={`--i:${i + 1}`}>
+            <img
+              src={`${g.src}-s.webp`}
+              srcset={srcset(g)}
+              sizes="(min-width: 768px) 20vw, 50vw"
+              width={g.w}
+              height={g.h}
+              alt={g.alt}
+              loading="lazy"
+              decoding="async"
+            />
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</section>
+
+<style>
+  .layout {
+    display: grid;
+    gap: 4px;
+  }
+
+  .head {
+    margin-bottom: 28px;
+  }
+
+  .main {
+    margin-inline: calc(var(--gutter) * -1);
+  }
+
+  .main img,
+  .rest img {
+    width: 100%;
+    aspect-ratio: 1;
+    object-fit: cover;
+  }
+
+  .rest {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 4px;
+    margin-inline: calc(var(--gutter) * -1);
+  }
+
+  .rest li:first-child {
+    grid-column: span 2;
+  }
+
+  .rest li:first-child img {
+    aspect-ratio: 2 / 1;
+  }
+
+  @media (min-width: 768px) {
+    .layout {
+      grid-template-columns: repeat(12, minmax(0, 1fr));
+      align-items: start;
+      gap: 4px;
+    }
+
+    .head {
+      grid-column: 1 / -1;
+      margin-bottom: 44px;
+    }
+
+    .main {
+      grid-column: 1 / span 7;
+    }
+
+    .rest {
+      grid-column: 8 / -1;
+      margin-inline: 0 calc(var(--gutter) * -1);
+    }
+  }
+</style>

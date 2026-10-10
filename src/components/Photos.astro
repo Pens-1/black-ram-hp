@@ -1,0 +1,235 @@
+---
+import Icon from './Icon.astro';
+import { photos, srcset } from '../data/site';
+
+// 不揃いのグリッドにするため、横長の何枚かを2列ぶんに広げる
+const wide = new Set([0, 4, 13]);
+const shape = (w: number, h: number) => (w > h * 1.1 ? 'land' : h > w * 1.1 ? 'port' : 'square');
+---
+
+<section class="section photo-section" id="photo" aria-labelledby="photo-title">
+  <div class="wrap">
+    <h2 class="section-title" id="photo-title" data-reveal>PHOTO</h2>
+  </div>
+
+  <div class="gallery-wrap">
+    <ul class="gallery" data-gallery>
+      {
+        photos.map((p, i) => (
+          <li class:list={['cell', shape(p.w, p.h), { wide: wide.has(i) }]}>
+            <button
+              type="button"
+              class="thumb grain"
+              data-photo={i}
+              data-full={`${p.src}.webp`}
+              aria-label={`拡大: ${p.alt}`}
+            >
+              <img
+                src={`${p.src}-s.webp`}
+                srcset={srcset(p)}
+                sizes={wide.has(i) ? '(min-width: 1200px) 50vw, (min-width: 768px) 66vw, 100vw' : '(min-width: 1200px) 25vw, (min-width: 768px) 33vw, 50vw'}
+                width={p.w}
+                height={p.h}
+                alt={p.alt}
+                loading="lazy"
+                decoding="async"
+              />
+            </button>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+
+  <dialog class="lightbox" data-lightbox aria-label="写真の拡大表示">
+    <figure class="lb-figure">
+      <img class="lb-img" alt="" data-lb-img />
+      <figcaption class="lb-cap" aria-live="polite">
+        <span data-lb-alt></span>
+        <span class="lb-count" data-lb-count></span>
+      </figcaption>
+    </figure>
+    <button class="lb-btn lb-close" type="button" data-lb-close aria-label="閉じる">
+      <Icon name="close" size={28} />
+    </button>
+    <button class="lb-btn lb-prev" type="button" data-lb-prev aria-label="前の写真">
+      <Icon name="arrow-left" size={28} />
+    </button>
+    <button class="lb-btn lb-next" type="button" data-lb-next aria-label="次の写真">
+      <Icon name="arrow-right" size={28} />
+    </button>
+  </dialog>
+</section>
+
+<style>
+  .gallery-wrap {
+    container-type: inline-size;
+  }
+
+  .gallery {
+    --cols: 2;
+    --gap: 4px;
+    display: grid;
+    grid-template-columns: repeat(var(--cols), minmax(0, 1fr));
+    grid-auto-rows: calc((100cqi - (var(--cols) - 1) * var(--gap)) / var(--cols) / 3);
+    grid-auto-flow: dense;
+    gap: var(--gap);
+  }
+
+  .cell.land {
+    grid-row: span 2;
+  }
+
+  .cell.square {
+    grid-row: span 3;
+  }
+
+  .cell.port {
+    grid-row: span 4;
+  }
+
+  .cell.wide {
+    grid-column: span 2;
+    grid-row: span 4;
+  }
+
+  .thumb {
+    display: block;
+    width: 100%;
+    height: 100%;
+    cursor: zoom-in;
+    background: var(--soot);
+  }
+
+  .thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .thumb img {
+      transition: transform 300ms var(--ease);
+    }
+
+    .thumb:hover img {
+      transform: scale(1.03);
+    }
+  }
+
+  .thumb:focus-visible {
+    outline-offset: -4px;
+  }
+
+  @media (min-width: 768px) {
+    .gallery {
+      --cols: 3;
+    }
+  }
+
+  @media (min-width: 1200px) {
+    .gallery {
+      --cols: 4;
+    }
+  }
+
+  /* ---------- 拡大表示 ---------- */
+  .lightbox {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    max-width: none;
+    height: 100dvh;
+    max-height: none;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: var(--ink);
+    color: var(--bone);
+    overflow: hidden;
+    overscroll-behavior: contain;
+    touch-action: pan-y pinch-zoom;
+  }
+
+  .lightbox::backdrop {
+    background: var(--ink);
+  }
+
+  .lb-figure {
+    display: grid;
+    grid-template-rows: minmax(0, 1fr) auto;
+    height: 100%;
+    padding: 64px var(--gutter) 16px;
+  }
+
+  .lb-img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+
+  .lb-cap {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    padding-top: 12px;
+    font-size: 13px;
+    font-weight: 500;
+    line-height: 1.6;
+    color: var(--ash);
+    max-width: 100%;
+  }
+
+  .lb-count {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+
+  .lb-btn {
+    position: absolute;
+    display: grid;
+    place-items: center;
+    width: 48px;
+    height: 48px;
+    color: var(--bone);
+    background: rgb(13 12 11 / 0.6);
+  }
+
+  .lb-btn:hover {
+    background: var(--char);
+  }
+
+  .lb-close {
+    top: 8px;
+    right: var(--gutter);
+  }
+
+  .lb-prev,
+  .lb-next {
+    top: 50%;
+    transform: translateY(-50%);
+  }
+
+  .lb-prev {
+    left: var(--gutter);
+  }
+
+  .lb-next {
+    right: var(--gutter);
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .lightbox[open] .lb-img {
+      animation: zoom 260ms var(--ease);
+    }
+  }
+
+  @keyframes zoom {
+    from {
+      opacity: 0;
+      transform: scale(0.97);
+    }
+  }
+</style>

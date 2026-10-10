@@ -1,0 +1,115 @@
+---
+import { hero } from '../data/site';
+---
+
+<section class="hero" id="top" aria-label="BLACK RAM">
+  <div class="media grain">
+    <video
+      class="hero-video"
+      muted
+      loop
+      playsinline
+      preload="metadata"
+      poster={hero.poster}
+      data-hero-video
+      aria-hidden="true"
+      tabindex="-1"
+    >
+      <source src={hero.video} type="video/mp4" />
+    </video>
+  </div>
+  <h1 class="logo">
+    <img
+      src="/logo/logo-full.webp"
+      width="1200"
+      height="1166"
+      alt="BLACK RAM"
+      fetchpriority="high"
+    />
+  </h1>
+</section>
+
+<style>
+  .hero {
+    position: relative;
+    min-height: 100dvh;
+    display: grid;
+    align-items: end;
+    overflow: hidden;
+    background: var(--ink);
+  }
+
+  .media {
+    position: absolute;
+    inset: 0;
+  }
+
+  .hero-video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  /* スマホ: 動画を全面に敷き、下側に Ink のグラデーション */
+  .media::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    background: linear-gradient(to top, rgb(13 12 11 / 0.92), rgb(13 12 11 / 0.35) 45%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .logo {
+    position: relative;
+    z-index: 1;
+    width: min(86vw, 520px);
+    margin: 0 0 max(40px, 6dvh) var(--gutter);
+  }
+
+  .logo img {
+    width: 100%;
+  }
+
+  @media (min-width: 768px) and (max-width: 1199px) {
+    .logo {
+      width: min(60vw, 560px);
+    }
+  }
+
+  /* PC: 動画は右寄せで高さいっぱい、左にロゴを大きく */
+  @media (min-width: 1200px) {
+    .hero {
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: center;
+      max-width: var(--max);
+      margin-inline: auto;
+      padding-left: var(--gutter);
+      overflow: visible;
+    }
+
+    .media {
+      position: relative;
+      inset: auto;
+      grid-column: 2;
+      grid-row: 1;
+      height: 100dvh;
+      aspect-ratio: 9 / 16;
+      margin-right: calc((100vw - min(100vw, var(--max))) / -2);
+    }
+
+    .media::before {
+      background: linear-gradient(to right, rgb(13 12 11 / 0.7), transparent 30%);
+    }
+
+    .logo {
+      grid-column: 1;
+      grid-row: 1;
+      width: min(100%, 680px);
+      margin: var(--header-h) 0 0;
+      /* ロゴの右端を動画に少しかぶせる */
+      margin-right: -120px;
+      z-index: 2;
+    }
+  }
+</style>

@@ -1,0 +1,102 @@
+---
+import Icon from './Icon.astro';
+import { social, links } from '../data/site';
+---
+
+<section class="section" id="contact" aria-labelledby="contact-title">
+  <div class="wrap layout">
+    <h2 class="section-title" id="contact-title" data-reveal>CONTACT</h2>
+    <ul class="links">
+      {
+        social.map((s, i) => (
+          <li data-reveal style={`--i:${i}`}>
+            <a href={s.href} target="_blank" rel="noopener">
+              <Icon name={s.icon} size={28} />
+              <span class="name" translate="no">{s.name}</span>
+              <span class="handle nowrap" translate="no">{s.handle}</span>
+              <span class="arrow" aria-hidden="true">
+                ↗
+              </span>
+            </a>
+          </li>
+        ))
+      }
+      <li data-reveal style="--i:3">
+        <a href={links.tunecore} target="_blank" rel="noopener">
+          <span class="icon-space" aria-hidden="true"></span>
+          <span class="name" translate="no">TuneCore</span>
+          <span class="handle"></span>
+          <span class="arrow" aria-hidden="true">↗</span>
+        </a>
+      </li>
+    </ul>
+  </div>
+</section>
+
+<style>
+  .links {
+    border-bottom: 1px solid var(--line);
+  }
+
+  .links li {
+    border-top: 1px solid var(--line);
+  }
+
+  .links a {
+    display: grid;
+    grid-template-columns: 28px 1fr auto;
+    grid-template-areas:
+      'icon name arrow'
+      '. handle arrow';
+    align-items: center;
+    gap: 0 16px;
+    padding-block: 20px;
+    min-height: 44px;
+    text-decoration: none;
+    transition: background-color 220ms var(--ease);
+  }
+
+  .links a:hover {
+    background: var(--char);
+  }
+
+  .links :global(.icon),
+  .icon-space {
+    grid-area: icon;
+  }
+
+  .name {
+    grid-area: name;
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: clamp(36px, 24px + 3.2vw, 64px);
+    line-height: 1;
+    text-transform: uppercase;
+  }
+
+  .handle {
+    grid-area: handle;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--ash);
+  }
+
+  .arrow {
+    grid-area: arrow;
+    font-size: clamp(24px, 18px + 1.6vw, 40px);
+  }
+
+  @media (min-width: 768px) {
+    .links a {
+      grid-template-columns: 28px minmax(0, 1fr) minmax(0, 1fr) auto;
+      grid-template-areas: 'icon name handle arrow';
+      gap: 24px;
+      padding-inline: 8px;
+    }
+
+    .handle {
+      font-size: 15px;
+    }
+  }
+
+</style>

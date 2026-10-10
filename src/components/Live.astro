@@ -1,0 +1,316 @@
+---
+import Icon from './Icon.astro';
+import { lives, srcset, type Live } from '../data/site';
+
+const upcoming = lives.filter((l) => l.upcoming);
+const past = lives.filter((l) => !l.upcoming).reverse();
+const pad = (n: number) => String(n).padStart(2, '0');
+const label = (l: Live) => `${l.month}月${l.day}日 ${l.venue}${l.title ? `「${l.title}」` : ''}`;
+---
+
+<section class="section" id="live" aria-labelledby="live-title">
+  <div class="wrap">
+    <h2 class="section-title" id="live-title" data-reveal>LIVE</h2>
+
+    {
+      upcoming.length === 0 ? (
+        <p class="empty" data-reveal>
+          次のライブは近日発表
+        </p>
+      ) : (
+        <ol class="rows">
+          {upcoming.map((l, i) => (
+            <li class:list={['row', { next: i === 0 }]} data-reveal style={`--i:${i}`}>
+              {l.flyer ? (
+                <details class="live" data-flyer>
+                  <summary aria-label={`${label(l)}（押すとフライヤーを表示）`}>
+                    <span class="date">
+                      {pad(l.month)}.{pad(l.day)}
+                    </span>
+                    <span class="info">
+                      <span class="venue nowrap" translate="no">{l.venue}</span>
+                      {l.title && <span class="title nowrap">{l.title}</span>}
+                    </span>
+                    <span class="toggle">
+                      <span class="toggle-text">FLYER</span>
+                      <Icon name="caret-down" size={20} />
+                    </span>
+                  </summary>
+                  <div class="flyer">
+                    <img
+                      src={`${l.flyer.src}.webp`}
+                      srcset={srcset(l.flyer)}
+                      sizes="(min-width: 768px) 420px, 100vw"
+                      width={l.flyer.w}
+                      height={l.flyer.h}
+                      alt={l.flyer.alt}
+                      loading="lazy"
+                      decoding="async"
+                    />
+                    {l.details && (
+                      <ul class="details">
+                        {l.details.map((d) => (
+                          <li>{d}</li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                </details>
+              ) : (
+                <div class="live static">
+                  <span class="date">
+                    {pad(l.month)}.{pad(l.day)}
+                  </span>
+                  <span class="info">
+                    <span class="venue nowrap" translate="no">{l.venue}</span>
+                    {l.title && <span class="title nowrap">{l.title}</span>}
+                  </span>
+                </div>
+              )}
+            </li>
+          ))}
+        </ol>
+      )
+    }
+
+    {
+      past.length > 0 && (
+        <details class="past" data-reveal>
+          <summary>
+            <span>過去の公演</span>
+            <Icon name="caret-down" size={20} />
+          </summary>
+          <ol class="past-list">
+            {past.map((l) => (
+              <li>
+                <span class="date">
+                  {pad(l.month)}.{pad(l.day)}
+                </span>
+                <span class="nowrap" translate="no">{l.venue}</span>
+                {l.title && <span class="nowrap">{l.title}</span>}
+              </li>
+            ))}
+          </ol>
+        </details>
+      )
+    }
+  </div>
+</section>
+
+<style>
+  .rows {
+    border-bottom: 1px solid var(--line);
+  }
+
+  .row {
+    border-top: 1px solid var(--line);
+  }
+
+  summary {
+    list-style: none;
+    cursor: pointer;
+  }
+
+  summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .live > summary,
+  .live.static {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    grid-template-areas:
+      'date toggle'
+      'info info';
+    align-items: end;
+    gap: 8px 16px;
+    padding: 24px 0;
+    min-height: 44px;
+  }
+
+  .row.next .live > summary,
+  .row.next .live.static {
+    background: var(--bone);
+    color: var(--ink);
+    padding-inline: 16px;
+    margin-inline: -16px;
+  }
+
+  .live > summary:hover {
+    background: var(--char);
+  }
+
+  .row.next .live > summary:hover {
+    background: #d9d4ca;
+  }
+
+  .live > summary:focus-visible {
+    outline-offset: -2px;
+  }
+
+  .row.next .live > summary:focus-visible {
+    outline-color: var(--ink);
+  }
+
+  .date {
+    grid-area: date;
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: clamp(40px, 29.5px + 2.7vw, 64px);
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0;
+    white-space: nowrap;
+  }
+
+  .info {
+    grid-area: info;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 4px 16px;
+  }
+
+  .venue {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: clamp(24px, 19px + 1vw, 32px);
+    line-height: 1.1;
+    text-transform: uppercase;
+  }
+
+  .title {
+    font-weight: 700;
+    font-size: 18px;
+    line-height: 1.5;
+    letter-spacing: 0.02em;
+  }
+
+  .toggle {
+    grid-area: toggle;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 44px;
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 16px;
+    letter-spacing: 0.06em;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .toggle :global(.icon) {
+      transition: transform 220ms var(--ease);
+    }
+  }
+
+  details[open] > summary .toggle :global(.icon),
+  .past[open] > summary :global(.icon) {
+    transform: rotate(180deg);
+  }
+
+  .flyer {
+    display: grid;
+    gap: 24px;
+    padding: 24px 16px 32px;
+    margin-inline: -16px;
+    background: var(--soot);
+  }
+
+  .flyer img {
+    width: 100%;
+    max-width: 420px;
+  }
+
+  .details {
+    display: grid;
+    gap: 8px;
+    align-content: start;
+    font-size: 15px;
+  }
+
+  .details li:first-child {
+    font-weight: 500;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    details[open] .flyer {
+      animation: open 260ms var(--ease);
+    }
+  }
+
+  @keyframes open {
+    from {
+      opacity: 0;
+      transform: translateY(-8px);
+    }
+  }
+
+  .empty {
+    font-weight: 700;
+    font-size: 20px;
+    padding-block: 24px;
+    border-block: 1px solid var(--line);
+  }
+
+  .past {
+    margin-top: 32px;
+    color: var(--ash);
+  }
+
+  .past > summary {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 44px;
+    font-weight: 700;
+  }
+
+  .past > summary:hover {
+    color: var(--bone);
+  }
+
+  .past-list li {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 16px;
+    align-items: baseline;
+    padding-block: 12px;
+    border-top: 1px solid var(--line);
+  }
+
+  .past-list .date {
+    font-size: 24px;
+  }
+
+  /* タブレット以上: 日付と会場を横並び */
+  @media (min-width: 768px) {
+    .live > summary,
+    .live.static {
+      grid-template-columns: minmax(4.2em, max-content) 1fr auto;
+      grid-template-areas: 'date info toggle';
+      align-items: center;
+      gap: 32px;
+      padding-block: 28px;
+    }
+
+    .row.next .live > summary,
+    .row.next .live.static {
+      padding-inline: 24px;
+      margin-inline: -24px;
+    }
+
+    .flyer {
+      grid-template-columns: 420px minmax(0, 36em);
+      gap: 40px;
+      padding: 32px 24px 40px;
+      margin-inline: -24px;
+    }
+  }
+
+  @media (min-width: 1200px) {
+    .info {
+      gap: 4px 32px;
+    }
+  }
+</style>

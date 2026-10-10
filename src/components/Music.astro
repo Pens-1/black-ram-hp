@@ -1,0 +1,208 @@
+---
+import { eps, links } from '../data/site';
+const [latest, ...others] = eps;
+---
+
+<section class="section" id="music" aria-labelledby="music-title">
+  <div class="wrap grid">
+    <h2 class="section-title head" id="music-title" data-reveal>MUSIC</h2>
+
+    {
+      latest && (
+        <article class="ep ep-latest" data-reveal>
+          <div class="cover">
+            <img
+              src={`${latest.cover.src}.webp`}
+              width={latest.cover.w}
+              height={latest.cover.h}
+              alt={latest.cover.alt}
+              loading="lazy"
+              decoding="async"
+            />
+          </div>
+          <div class="meta">
+            <h3 class="ep-title nowrap" translate="no">{latest.title}</h3>
+            {latest.href && (
+              <a class="btn" href={latest.href} target="_blank" rel="noopener">
+                <span class="ja">聴く</span>
+                <span aria-hidden="true">↗</span>
+                <span class="sr-only">（{latest.title}、新しいタブで開く）</span>
+              </a>
+            )}
+          </div>
+        </article>
+      )
+    }
+
+    <div class="others">
+      {
+        others.map((ep, i) => (
+          <article class="ep" data-reveal style={`--i:${i + 1}`}>
+            <div class="cover">
+              <img
+                src={`${ep.cover.src}.webp`}
+                width={ep.cover.w}
+                height={ep.cover.h}
+                alt={ep.cover.alt}
+                loading="lazy"
+                decoding="async"
+              />
+            </div>
+            <div class="meta">
+              <h3 class="ep-title nowrap" translate="no">{ep.title}</h3>
+              {ep.href && (
+                <a class="btn" href={ep.href} target="_blank" rel="noopener">
+                  <span class="ja">聴く</span>
+                  <span aria-hidden="true">↗</span>
+                  <span class="sr-only">（{ep.title}、新しいタブで開く）</span>
+                </a>
+              )}
+            </div>
+          </article>
+        ))
+      }
+    </div>
+
+    <p class="all" data-reveal>
+      <a class="text-link ext" href={links.tunecore} target="_blank" rel="noopener" translate="no">TuneCore</a>
+    </p>
+  </div>
+</section>
+
+<style>
+  .grid {
+    display: grid;
+    gap: 48px 16px;
+  }
+
+  .head {
+    margin-bottom: 0;
+  }
+
+  .ep {
+    display: grid;
+    gap: 16px;
+    align-content: start;
+  }
+
+  .cover {
+    overflow: hidden;
+    background: var(--soot);
+  }
+
+  .cover img {
+    width: 100%;
+    aspect-ratio: 1;
+    object-fit: cover;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .cover img {
+      transition: transform 300ms var(--ease);
+    }
+
+    .ep:hover .cover img {
+      transform: scale(1.03);
+    }
+  }
+
+  .meta {
+    display: grid;
+    gap: 16px;
+    justify-items: start;
+  }
+
+  .ep-title {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: clamp(24px, 19px + 1vw, 32px);
+    line-height: 1.1;
+    text-transform: uppercase;
+  }
+
+  .ep-latest .ep-title {
+    font-size: clamp(32px, 22px + 2.6vw, 56px);
+    font-weight: 800;
+    line-height: 0.95;
+  }
+
+  /* スマホ: 最新作は幅いっぱい、他は2列 */
+  .others {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    align-items: start;
+  }
+
+  .ep-latest .cover {
+    margin-inline: calc(var(--gutter) * -1);
+  }
+
+  .all {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 18px;
+    letter-spacing: 0.06em;
+  }
+
+  .all a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+  }
+
+  @media (min-width: 768px) {
+    .grid {
+      grid-template-columns: repeat(12, minmax(0, 1fr));
+      column-gap: 24px;
+    }
+
+    .head {
+      grid-column: 1 / -1;
+    }
+
+    .ep-latest {
+      grid-column: 1 / span 7;
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .ep-latest .cover {
+      margin-inline: 0;
+      max-width: 560px;
+    }
+
+    .others {
+      grid-column: 8 / -1;
+      grid-template-columns: 1fr;
+      gap: 40px;
+      /* 最新作より下げて置き、段差を作る */
+      padding-top: 96px;
+    }
+
+    .others .ep {
+      grid-template-columns: minmax(0, 200px) 1fr;
+      gap: 20px;
+      align-items: end;
+    }
+
+    .all {
+      grid-column: 8 / -1;
+    }
+  }
+
+  @media (min-width: 1200px) {
+    .ep-latest {
+      grid-template-columns: minmax(0, 560px) auto;
+      align-items: end;
+      gap: 32px;
+    }
+
+    .ep-latest .meta {
+      padding-bottom: 8px;
+    }
+
+    .others .ep {
+      grid-template-columns: minmax(0, 240px) 1fr;
+    }
+  }
+</style>

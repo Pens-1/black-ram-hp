@@ -1,0 +1,146 @@
+---
+import { profile, srcset, type Img } from '../data/site';
+const [tall, ...wides] = profile.sub;
+const pic = (i: Img, sizes: string) => ({
+  src: `${i.src}.webp`,
+  srcset: srcset(i),
+  sizes,
+  width: i.w,
+  height: i.h,
+  alt: i.alt,
+  loading: 'lazy' as const,
+  decoding: 'async' as const,
+});
+---
+
+<section class="section" id="profile" aria-labelledby="profile-title">
+  <div class="wrap layout">
+    <h2 class="section-title head" id="profile-title" data-reveal>PROFILE</h2>
+
+    <figure class="artist grain" data-reveal>
+      <img {...pic(profile.main, '(min-width: 768px) 40vw, 100vw')} />
+    </figure>
+
+    {
+      (profile.members.length > 0 || profile.text) && (
+        <div class="text" data-reveal>
+          {profile.members.length > 0 && (
+            <ul class="members">
+              {profile.members.map((m) => (
+                <li>
+                  <span class="nowrap">{m.name}</span> <span class="note">{m.part}</span>
+                </li>
+              ))}
+            </ul>
+          )}
+          {profile.text && <p>{profile.text}</p>}
+        </div>
+      )
+    }
+
+    {
+      tall && (
+        <figure class="tall grain" data-reveal style="--i:1">
+          <img {...pic(tall, '(min-width: 768px) 50vw, 100vw')} />
+        </figure>
+      )
+    }
+    {
+      wides.map((w, i) => (
+        <figure class:list={['wide grain', `wide-${i}`]} data-reveal style={`--i:${i + 2}`}>
+          <img {...pic(w, '(min-width: 768px) 45vw, 100vw')} />
+        </figure>
+      ))
+    }
+  </div>
+</section>
+
+<style>
+  .layout {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 4px;
+  }
+
+  .head,
+  .artist,
+  .tall,
+  .text {
+    grid-column: 1 / -1;
+  }
+
+  .head {
+    margin-bottom: 28px;
+  }
+
+  .artist,
+  .tall {
+    margin-inline: calc(var(--gutter) * -1);
+  }
+
+  .wide-0 {
+    margin-left: calc(var(--gutter) * -1);
+  }
+
+  .wide-1 {
+    margin-right: calc(var(--gutter) * -1);
+  }
+
+  figure img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .wide img {
+    aspect-ratio: 4 / 3;
+  }
+
+  .text {
+    padding-block: 24px;
+    max-width: 36em;
+    text-wrap: pretty;
+  }
+
+  @media (min-width: 768px) {
+    .layout {
+      grid-template-columns: repeat(12, minmax(0, 1fr));
+      gap: 4px;
+    }
+
+    .head {
+      margin-bottom: 44px;
+    }
+
+    .artist {
+      grid-column: 1 / span 5;
+      grid-row: 2;
+      margin: 0;
+      align-self: end;
+      margin-bottom: 96px;
+    }
+
+    .text {
+      grid-column: 1 / span 5;
+      grid-row: 3;
+    }
+
+    .tall {
+      grid-column: 7 / -1;
+      grid-row: 2 / span 2;
+      margin: 0 calc(var(--gutter) * -1) 0 0;
+    }
+
+    .wide-0 {
+      grid-column: 1 / span 6;
+      grid-row: 4;
+      margin: 0 0 0 calc(var(--gutter) * -1);
+    }
+
+    .wide-1 {
+      grid-column: 7 / -1;
+      grid-row: 4;
+      margin: 0 calc(var(--gutter) * -1) 0 0;
+    }
+  }
+</style>

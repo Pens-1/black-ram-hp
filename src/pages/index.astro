@@ -1,0 +1,45 @@
+---
+import Base from '../layouts/Base.astro';
+import Header from '../components/Header.astro';
+import Hero from '../components/Hero.astro';
+import News from '../components/News.astro';
+import Live from '../components/Live.astro';
+import Music from '../components/Music.astro';
+import Videos from '../components/Videos.astro';
+import Photos from '../components/Photos.astro';
+import Goods from '../components/Goods.astro';
+import Profile from '../components/Profile.astro';
+import Contact from '../components/Contact.astro';
+import Footer from '../components/Footer.astro';
+---
+
+<Base>
+  <link slot="head" rel="preload" as="image" href="/logo/logo-full.webp" type="image/webp" />
+  <Header />
+  <main id="main" tabindex="-1">
+    <Hero />
+    <News />
+    <Live />
+    <Music />
+    <Videos />
+    <Photos />
+    <Goods />
+    <Profile />
+    <Contact />
+  </main>
+  <Footer />
+</Base>
+
+<script>
+  import '../scripts/main.ts';
+</script>
+
+<style is:global>
+  main {
+    overflow-x: clip;
+  }
+
+  main:focus {
+    outline: none;
+  }
+</style>
