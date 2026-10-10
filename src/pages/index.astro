@@ -2,6 +2,7 @@
 import Base from '../layouts/Base.astro';
 import Header from '../components/Header.astro';
 import Hero from '../components/Hero.astro';
+import Intro from '../components/Intro.astro';
 import News from '../components/News.astro';
 import Live from '../components/Live.astro';
 import Music from '../components/Music.astro';
@@ -15,6 +16,14 @@ import Footer from '../components/Footer.astro';
 
 <Base>
   <link slot="head" rel="preload" as="image" href="/logo/logo-full.webp" type="image/webp" />
+  <!-- ロード時のロゴアニメーションを出すか: JSあり・動きを減らす設定なしのとき、リロードでも毎回出す -->
+  <script slot="head" is:inline>
+    (function () {
+      if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+      document.documentElement.classList.add('is-intro');
+    })();
+  </script>
+  <Intro />
   <Header />
   <main id="main" tabindex="-1">
     <Hero />

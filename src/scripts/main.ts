@@ -1,5 +1,6 @@
-// 最小限の動き: メニュー開閉 / ヘッダー背景 / 現在地 / 動画再生 / ストロボ / 写真の拡大 / 入ってくる動き
+// 最小限の動き: ロゴアニメーション / メニュー開閉 / ヘッダー背景 / 現在地 / 動画再生 / ストロボ / 写真の拡大 / 入ってくる動き
 // （フライヤーの開閉は <details> なので JS 不要）
+import { introDone, introRunning } from './intro';
 
 const reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
 
@@ -57,10 +58,6 @@ if (sections.length) {
 
 /* ---------- ヒーロー動画（動きを減らす設定ではポスターのまま） ---------- */
 const heroVideo = document.querySelector<HTMLVideoElement>('[data-hero-video]');
-// 比較用カラー版: ?color=1 のときだけ動画を白黒にしない
-if (new URLSearchParams(location.search).get('color') === '1') {
-  heroVideo?.closest('.hero')?.classList.add('is-color');
-}
 function syncHero(initial = false) {
   if (!heroVideo) return;
   if (reduce.matches) {
@@ -96,6 +93,8 @@ if (strobe && flash && tint) {
   let glitchTimer = 0;
   let active = false;
   let inView = true;
+  // ロゴアニメーション中は止めておく（閃光が重ならないように、終わってから刻み始める）
+  let held = introRunning;
   let beat = 400; // 1拍の長さ（ms）。小節ごとに BPM を揺らす
   let count = 0; // 小節内の拍（0〜3）
   const rand = (a: number, b: number) => a + Math.random() * (b - a);
@@ -170,7 +169,7 @@ if (strobe && flash && tint) {
   };
 
   const sync = () => {
-    const should = !reduce.matches && inView && !document.hidden;
+    const should = !reduce.matches && inView && !document.hidden && !held;
     if (should === active) return;
     active = should;
     if (active) start(rand(300, 700));
@@ -183,11 +182,15 @@ if (strobe && flash && tint) {
   }).observe(strobe);
   document.addEventListener('visibilitychange', sync);
   reduce.addEventListener('change', sync);
-  // 最初の一撃はロゴが書き終わるころ
-  if (!reduce.matches) {
+  // 最初の一撃はロゴが書き終わるころ（ロゴアニメーションを出したときは、それが終わってから）
+  if (!reduce.matches && !held) {
     active = true;
     start(1500);
   }
+  introDone.then(() => {
+    held = false;
+    sync();
+  });
 }
 
 /* ---------- 動画カード: 押すとその場で音ありで再生 ---------- */

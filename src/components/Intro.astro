@@ -1,0 +1,114 @@
+---
+import { logoIntro as L } from '../data/logo-intro';
+
+// ロード時のロゴアニメーション（案D2）。形のデータは data/logo-intro.ts、動きは scripts/intro.ts。
+// 出すかどうかは index.astro の <head> のインラインスクリプトが決め、<html> に is-intro を付ける
+// （JSなし・動きを減らす設定では付かない＝この層は出ない。リロードでも毎回出す）。
+const vb = `0 0 ${L.width} ${L.height}`;
+const box = { x: 0, y: 0, width: L.width, height: L.height, maskUnits: 'userSpaceOnUse' } as const;
+---
+
+<div class="intro" aria-hidden="true" data-intro>
+  <svg class="intro-logo" viewBox={vb} width={L.width} height={L.height} data-intro-logo>
+    <defs>
+      <image id="li-img" href={L.src} width={L.width} height={L.height} />
+      <clipPath id="li-c-black"><polygon points={L.regions.black} /></clipPath>
+      <clipPath id="li-c-ram"><polygon points={L.regions.ram} /></clipPath>
+      <clipPath id="li-c-eyes">{L.skullParts.eyes.map((p) => <polygon points={p} />)}</clipPath>
+      <clipPath id="li-c-horns">{L.skullParts.horns.map((p) => <polygon points={p} />)}</clipPath>
+      <!-- 頭蓋骨の残り（目・角を抜いた部分） -->
+      <mask id="li-m-core" {...box}>
+        <polygon points={L.regions.skull} fill="#fff" />
+        {[...L.skullParts.eyes, ...L.skullParts.horns].map((p) => <polygon points={p} fill="#000" />)}
+      </mask>
+      <!-- 筆の中心線。通った所だけ画像を見せる -->
+      {
+        (['black', 'ram'] as const).map((k) => (
+          <mask id={`li-m-${k}`} {...box}>
+            <g
+              fill="none"
+              stroke="#fff"
+              stroke-width={L.strokeWidth}
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              {L.strokes[k].map((d) => (
+                <path d={d} data-intro-stroke={k} />
+              ))}
+            </g>
+          </mask>
+        ))
+      }
+    </defs>
+
+    <g clip-path="url(#li-c-black)" mask="url(#li-m-black)"><use href="#li-img" /></g>
+    <g class="intro-skull" data-intro-skull>
+      <g mask="url(#li-m-core)"><use href="#li-img" /></g>
+      <g class="intro-part" clip-path="url(#li-c-horns)" data-intro-part><use href="#li-img" /></g>
+      <g class="intro-part" clip-path="url(#li-c-eyes)" data-intro-part><use href="#li-img" /></g>
+    </g>
+    <g clip-path="url(#li-c-ram)" mask="url(#li-m-ram)"><use href="#li-img" /></g>
+  </svg>
+  <span class="intro-flash" data-intro-flash></span>
+</div>
+
+<style>
+  .intro {
+    display: none;
+  }
+
+  :global(html.is-intro) .intro {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    display: grid;
+    place-items: center;
+    background: var(--ink);
+    /* JS が動かなかったときの保険: 3.5秒で消える（全体約2.3秒＋余裕） */
+    animation: intro-failsafe 0.3s 3.5s both;
+  }
+
+  .intro-logo {
+    display: block;
+    width: min(78vw, 640px, calc(64dvh * 1200 / 1166));
+    height: auto;
+    transform-origin: 0 0;
+    /* JS が中心線を準備するまでは真っ暗 */
+    opacity: 0;
+  }
+
+  .intro.is-run .intro-logo {
+    opacity: 1;
+  }
+
+  /* 頭蓋骨は最初から薄暗く見えている（書き終わりのストロボで光る） */
+  .intro-skull {
+    opacity: 0.3;
+  }
+
+  /* グリッチ（Hero.astro の #rgb-split を使い回す） */
+  .intro.is-glitch .intro-logo {
+    filter: url(#rgb-split);
+  }
+
+  .intro-flash {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: var(--bone);
+    opacity: 0;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    :global(html.is-intro) .intro {
+      display: none;
+    }
+  }
+
+  @keyframes intro-failsafe {
+    to {
+      opacity: 0;
+      visibility: hidden;
+    }
+  }
+</style>

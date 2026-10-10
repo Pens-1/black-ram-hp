@@ -97,12 +97,7 @@ const ground = { ...stages.hero.lit, src: stages.hero.dark };
     width: 100%;
     height: 100%;
     object-fit: cover;
-    /* 白黒が基本（色は差し色の一瞬だけ） */
-    filter: grayscale(1) contrast(1.25) brightness(0.6);
-  }
-
-  /* 比較用カラー版（?color=1。main.ts が is-color を付ける）: 元の色のまま、沈めは弱め */
-  .hero.is-color .hero-video {
+    /* 元の色のまま、少し沈める */
     filter: contrast(1.1) brightness(0.85);
   }
 
@@ -220,6 +215,31 @@ const ground = { ...stages.hero.lit, src: stages.hero.dark };
       -webkit-mask-repeat: no-repeat;
       mask-repeat: no-repeat;
       animation: brush 1.2s cubic-bezier(0.45, 0.05, 0.35, 1) 0.25s both;
+    }
+  }
+
+  /* ロード時のロゴアニメーション（Intro.astro）の間は隠し、終わったら同じ位置に出す。
+     書き出しの mask も掛けない（アニメーション側で書き終えている）。JS が動かなくても3.5秒で出す */
+  :global(html.is-intro) .logo img {
+    -webkit-mask-image: none;
+    mask-image: none;
+    animation: intro-hold 0s 3.5s both;
+  }
+
+  /* イントロを出したとき（最後まで・飛ばしたとき）: イントロのロゴから受け渡すので、書き出し・フェードなしで最初から表示済み */
+  :global(html.intro-shown) .logo img {
+    -webkit-mask-image: none;
+    mask-image: none;
+    animation: none;
+    opacity: 1;
+  }
+
+  @keyframes intro-hold {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
     }
   }
 

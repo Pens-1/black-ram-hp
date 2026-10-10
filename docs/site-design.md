@@ -13,7 +13,7 @@
 | 0 | header | ロゴ、メニュー（LIVE / MUSIC / VIDEO / GOODS / PROFILE / CONTACT）、SNSアイコン。スマホはメニューを開閉 | ロゴ |
 | 1 | hero | 縦リール動画を音なしでループ＋ロゴを大きく。動画が使えないときはライブ写真 | assets/video/reel-DaWx4pxxqvu.mp4 |
 | 2 | news | 告知の一覧（日付＋1行）。0件なら出さない | 内容は未確認 |
-| 3 | live | 今後の予定（日付・会場・タイトル・フライヤー）。過去公演は折りたたみ | 6/22 GATTACA「天変地異」、8/14 KYOTO MUSE（年は未確認） |
+| 3 | live | 今後の予定（日付・会場・タイトル・フライヤー）。過去公演は折りたたみ | 予定: 10/20（火） 梅田 ODYSSEY「VOLTAGE」（詳細は PRODUCT.md）。過去: 6/22 GATTACA「天変地異」、8/14 KYOTO MUSE（年は未確認） |
 | 4 | music | EPごとにジャケット＋配信リンク | RAM'S BALL → https://linkco.re/3CcSGHyp、BABY TANK → https://linkco.re/tM5cbf6t、ASS HOLE（リンク未確認） |
 | 5 | video | 縦リールのカード。タップで音ありで再生 | assets/video/*.mp4 |
 | 6 | photo | ライブ写真のギャラリー | assets/instagram/ig-DcHOFc4E20Q-s* ほか |

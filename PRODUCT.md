@@ -20,6 +20,7 @@ BLACK RAM（バンド）の公式HP。目的の優先順位は未確認。
 
 ## Capabilities and Constraints
 - EP: 3rd「RAM'S BALL」(linkco.re/3CcSGHyp)、2nd「BABY TANK」(linkco.re/tM5cbf6t)、「ASS HOLE」（順番未確認）
+- 次のライブ: 2026/10/20（火） 梅田 ODYSSEY「VOLTAGE」 OPEN 17:30 / START 18:00、ADV/DOOR ¥2,500（＋1D ¥700）。出演: BLACK RAM / Neo'n'eat / bloom in zero / Skade / PANdeMIX（出演順は未確認）。予約: 会場（電話 06-6940-4955 / LINE / メールフォーム）。前売予約の窓口かは未確認。出典 https://umeda-odyssey.com/event/1115
 - SNS: Instagram black_______ram / X blackram0418 / TikTok @blackram__ / TuneCore アーティストページ
 - メンバー名・パート・拠点・プロフィール文・問い合わせ先・物販購入方法: 未確認（創作禁止）
 
