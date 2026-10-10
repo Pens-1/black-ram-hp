@@ -1,74 +1,183 @@
 ---
-import Shade from './Shade.astro';
-import Stage from './Stage.astro';
-import { hero, stages } from '../data/site';
+import { hero, srcset, stages } from '../data/site';
+
+// 地の写真は暗い白黒（scripts/make-stage.py の出力）だけを使う。色は照明（tint）で載せる
+const ground = { ...stages.hero.lit, src: stages.hero.dark };
 ---
 
 <!--
-  案C「暗転と照明」のファーストビュー。
-  PC: 暗く沈めた白黒のライブ写真を全面に敷き、カーソルの照明が当たった部分だけ緑がにじむ。右の縦動画にも同じ照明が当たる。
-  スマホ: 縦動画を全面に敷き、スクロール位置で照明が動く。下へ抜けると照明が絞られて暗転する。
+  案D2「ストロボとグリッチ」のファーストビュー。
+  ほぼ白黒。白黒の縦動画のまま、ロックのテンポ（揺らぎあり）で RGB ずれとコマ飛び風のグリッチが刻まれ、
+  ときどきストロボの閃光が入る。色（緑・紫・青）は閃光の一瞬だけ、光の当たった部分に薄く差す。
+  PC: 暗い白黒のライブ写真を全面に敷き、右に縦動画、左にロゴ。スマホ: 縦動画が全面、ロゴは下寄せ。
+  タイミングは main.ts（ストロボ）。動きを減らす設定・JSなしでは白黒のまま止まる。
 -->
-<section class="hero" id="top" aria-label="BLACK RAM" data-light-room>
-  <Stage class="ground" stage={stages.hero} sizes="100vw" rest="30% 46%" eager />
-  <!-- 映像は暗い白黒に沈め、照明の当たる部分だけ色を戻す（PCはカーソル、スマホはスクロール位置） -->
-  <div class="media lamp" data-stage data-rest="50% 36%" style="--lx:50%;--ly:36%">
-    <video
-      class="hero-video"
-      muted
-      loop
-      playsinline
-      preload="metadata"
-      poster={hero.poster}
-      data-hero-video
-      aria-hidden="true"
-      tabindex="-1"
-    >
-      <source src={hero.video} type="video/mp4" />
-    </video>
-    <Shade />
+<section class="hero" id="top" aria-label="BLACK RAM" data-strobe>
+  <div class="scene" aria-hidden="true">
+    <img
+      class="ground"
+      src={`${ground.src}-s.webp`}
+      srcset={srcset(ground)}
+      sizes="100vw"
+      width={ground.w}
+      height={ground.h}
+      alt=""
+      decoding="async"
+    />
+    <div class="frame">
+      <video
+        class="hero-video"
+        muted
+        loop
+        playsinline
+        preload="metadata"
+        poster={hero.poster}
+        data-hero-video
+        tabindex="-1"
+      >
+        <source src={hero.video} type="video/mp4" />
+      </video>
+    </div>
+    <!-- 差し色（閃光の一瞬だけ、光の当たった部分を薄く染める）・閃光 -->
+    <span class="tint" data-strobe-tint></span>
+    <span class="flash" data-strobe-flash></span>
   </div>
   <div class="fade" aria-hidden="true"></div>
   <div class="film-wrap" aria-hidden="true"><div class="film"></div></div>
-  <h1 class="logo">
-    <img src="/logo/logo-full.webp" width="1200" height="1166" alt="BLACK RAM" fetchpriority="high" />
-  </h1>
+  <div class="inner">
+    <h1 class="logo">
+      <img src="/logo/logo-full.webp" width="1200" height="1166" alt="BLACK RAM" fetchpriority="high" />
+    </h1>
+  </div>
+
+  <!-- RGB ずれ: 赤・緑・青のチャンネルを分けて左右にずらし、加算で重ね直す -->
+  <svg class="defs" width="0" height="0" aria-hidden="true" focusable="false">
+    <filter id="rgb-split" x="-5%" y="0" width="110%" height="100%" color-interpolation-filters="sRGB">
+      <feColorMatrix in="SourceGraphic" type="matrix" values="1 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 1 0" result="r" />
+      <feOffset in="r" dx="-22" dy="0" result="r2" data-split-r />
+      <feColorMatrix in="SourceGraphic" type="matrix" values="0 0 0 0 0  0 1 0 0 0  0 0 0 0 0  0 0 0 1 0" result="g" />
+      <feColorMatrix in="SourceGraphic" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 1 0 0  0 0 0 1 0" result="b" />
+      <feOffset in="b" dx="22" dy="0" result="b2" data-split-b />
+      <feBlend in="r2" in2="g" mode="screen" result="rg" />
+      <feBlend in="rg" in2="b2" mode="screen" />
+    </filter>
+  </svg>
 </section>
 
 <style>
   .hero {
+    /* 差し色は main.ts が --tint・--bx に入れる */
+    --tint: rgb(40 230 110);
+    --bx: 50%;
     position: relative;
     min-height: 100dvh;
     display: grid;
-    align-items: end;
     overflow: hidden;
     background: var(--ink);
   }
 
+  .scene {
+    position: absolute;
+    inset: 0;
+    isolation: isolate;
+    overflow: hidden;
+  }
+
   /* 地の写真は PC だけ（スマホは動画が地） */
-  .hero :global(.ground) {
+  .ground {
     display: none;
   }
 
-  .film-wrap {
+  .frame {
     position: absolute;
     inset: 0;
-    z-index: 2;
-    overflow: hidden;
-    pointer-events: none;
-  }
-
-  .media {
-    position: absolute;
-    inset: 0;
-    /* JSなし・動きを減らす設定で止まる照明 */
-    --r: clamp(170px, 55vmin, 520px);
   }
 
   .hero-video {
     width: 100%;
     height: 100%;
     object-fit: cover;
+    /* 白黒が基本（色は差し色の一瞬だけ） */
+    filter: grayscale(1) contrast(1.25) brightness(0.6);
+  }
+
+  /* 比較用カラー版（?color=1。main.ts が is-color を付ける）: 元の色のまま、沈めは弱め */
+  .hero.is-color .hero-video {
+    filter: contrast(1.1) brightness(0.85);
+  }
+
+  .tint,
+  .flash {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0;
+  }
+
+  /* 差し色: 上から当たる光の形だけ、明るさはそのままに色相を寄せる（1色だけ。全面は塗らない） */
+  .tint {
+    background: radial-gradient(ellipse 45% 70% at var(--bx) -10%, var(--tint), transparent 70%);
+    mix-blend-mode: color;
+  }
+
+  .flash {
+    background: var(--bone);
+  }
+
+  /* グリッチ: RGB ずれ＋コマ飛び（段のついた横ずれ・拡大）。型は main.ts が is-glitch / is-glitch-b で選ぶ */
+  .hero.is-glitch .scene,
+  .hero.is-glitch-b .scene {
+    filter: url(#rgb-split);
+  }
+
+  .hero.is-glitch .scene {
+    animation: skip var(--gd, 180ms) steps(1) both;
+  }
+
+  .hero.is-glitch-b .scene {
+    animation: skip-b var(--gd, 180ms) steps(1) both;
+  }
+
+  @keyframes skip {
+    0% {
+      transform: translate(-3.5%, 0) scale(1.08);
+    }
+    20% {
+      transform: translate(4%, -1.5%) scale(1.12);
+    }
+    40% {
+      transform: translate(-1%, 2.5%) scale(1.05);
+    }
+    60% {
+      transform: translate(2.5%, 0) scale(1.1);
+    }
+    80% {
+      transform: translate(-2%, -1%) scale(1.06);
+    }
+    100% {
+      transform: none;
+    }
+  }
+
+  @keyframes skip-b {
+    0% {
+      transform: translate(5%, 1%) scale(1.1);
+    }
+    30% {
+      transform: translate(-4%, 0) scale(1.14) skewX(-4deg);
+    }
+    60% {
+      transform: translate(1.5%, -2%) scale(1.06);
+    }
+    100% {
+      transform: none;
+    }
+  }
+
+  .defs {
+    position: absolute;
+    width: 0;
+    height: 0;
   }
 
   /* スマホ: 下側に Ink のグラデーションを敷いてロゴを下寄せ */
@@ -79,9 +188,20 @@ import { hero, stages } from '../data/site';
     background: linear-gradient(to top, rgb(13 12 11 / 0.92), rgb(13 12 11 / 0.3) 45%, transparent 70%);
   }
 
-  .logo {
+  .film-wrap {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+  }
+
+  .inner {
     position: relative;
-    z-index: 1;
+    display: flex;
+    align-items: flex-end;
+  }
+
+  .logo {
     width: min(86vw, 520px);
     margin: 0 0 max(40px, 6dvh) var(--gutter);
   }
@@ -103,6 +223,20 @@ import { hero, stages } from '../data/site';
     }
   }
 
+  /* 動きを減らす設定: 閃光・グリッチは出さない */
+  @media (prefers-reduced-motion: reduce) {
+    .hero.is-glitch .scene,
+    .hero.is-glitch-b .scene {
+      filter: none;
+      animation: none;
+    }
+
+    .tint,
+    .flash {
+      display: none;
+    }
+  }
+
   @keyframes brush {
     from {
       -webkit-mask-position: 100% 0;
@@ -120,64 +254,40 @@ import { hero, stages } from '../data/site';
     }
   }
 
-  /* PC: 動画は右寄せで高さいっぱい、左にロゴを大きく */
+  /* PC: 地の写真を全面、動画は右寄せで高さいっぱい、左にロゴを大きく */
   @media (min-width: 1200px) {
-    .hero {
-      grid-template-columns: minmax(0, 1fr) auto;
-      align-items: center;
-      max-width: var(--max);
-      margin-inline: auto;
-      padding-left: var(--gutter);
-      overflow: visible;
-    }
-
-    .media {
-      position: relative;
-      inset: auto;
-      grid-column: 2;
-      grid-row: 1;
-      height: 100dvh;
-      aspect-ratio: 9 / 16;
-      margin-right: calc((100vw - min(100vw, var(--max))) / -2);
-    }
-
-    .hero :global(.ground) {
+    .ground {
       display: block;
       position: absolute;
       inset: 0;
-      /* 1360px の枠の外まで、画面の端から端へ敷く */
-      left: calc((100vw - min(100vw, var(--max))) / -2);
-      right: calc((100vw - min(100vw, var(--max))) / -2);
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: 50% 40%;
     }
 
-    .hero :global(.ground img) {
-      object-position: 50% 40%;
+    .frame {
+      inset: 0 calc((100% - min(100%, var(--max))) / 2) 0 auto;
+      height: 100%;
+      aspect-ratio: 9 / 16;
     }
 
     /* ロゴの下を暗く落としてコントラストを守る */
     .fade {
-      left: calc((100vw - min(100vw, var(--max))) / -2);
       background: linear-gradient(to right, rgb(13 12 11 / 0.7), rgb(13 12 11 / 0.2) 50%, transparent 70%);
     }
 
-    .film-wrap {
-      left: calc((100vw - min(100vw, var(--max))) / -2);
-      right: calc((100vw - min(100vw, var(--max))) / -2);
-    }
-
-    .media,
-    .logo {
-      z-index: 1;
+    .inner {
+      align-items: center;
+      width: 100%;
+      max-width: var(--max);
+      margin-inline: auto;
+      padding: var(--header-h) var(--gutter) 0;
     }
 
     .logo {
-      grid-column: 1;
-      grid-row: 1;
-      width: min(100%, 680px);
-      margin: var(--header-h) 0 0;
-      /* ロゴの右端を動画に少しかぶせる */
-      margin-right: -120px;
-      z-index: 2;
+      width: min(52%, 680px);
+      margin: 0;
     }
   }
 </style>

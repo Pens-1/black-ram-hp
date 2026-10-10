@@ -1,4 +1,4 @@
-// 最小限の動き: メニュー開閉 / ヘッダー背景 / 現在地 / 動画再生 / 写真の拡大 / 入ってくる動き
+// 最小限の動き: メニュー開閉 / ヘッダー背景 / 現在地 / 動画再生 / ストロボ / 写真の拡大 / 入ってくる動き
 // （フライヤーの開閉は <details> なので JS 不要）
 
 const reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -57,6 +57,10 @@ if (sections.length) {
 
 /* ---------- ヒーロー動画（動きを減らす設定ではポスターのまま） ---------- */
 const heroVideo = document.querySelector<HTMLVideoElement>('[data-hero-video]');
+// 比較用カラー版: ?color=1 のときだけ動画を白黒にしない
+if (new URLSearchParams(location.search).get('color') === '1') {
+  heroVideo?.closest('.hero')?.classList.add('is-color');
+}
 function syncHero(initial = false) {
   if (!heroVideo) return;
   if (reduce.matches) {
@@ -72,89 +76,118 @@ function syncHero(initial = false) {
 syncHero(true);
 reduce.addEventListener('change', () => syncHero());
 
-/* ---------- 照明（案C「暗転と照明」）----------
-   [data-light-room] の中の [data-stage] に、1つの照明を当てる。
-   PC（カーソルあり）: カーソルの位置。スマホ: スクロール位置で照明が動く。
-   部屋が画面の上へ抜けるほど照明が絞られ、地も暗くなる（暗転）。
-   動きを減らす設定では何もしない（CSS の決まった位置に止まった照明のまま） */
-const room = document.querySelector<HTMLElement>('[data-light-room]');
-if (room && !reduce.matches) {
-  const finePointer = window.matchMedia('(hover: hover) and (pointer: fine)');
-  const lights = Array.from(room.querySelectorAll<HTMLElement>('[data-stage]')).map((el) => {
-    const [rx, ry] = (el.dataset.rest ?? '50% 50%').split(' ').map((v) => parseFloat(v) / 100);
-    return { el, rx, ry, x: NaN, y: NaN, r: 0, lv: 0 };
-  });
-  let pointer: { x: number; y: number } | null = null;
-  let running = false;
-  let visible = true;
-  const start = performance.now();
-  const smooth = (a: number, b: number, t: number) => {
-    const k = Math.min(1, Math.max(0, (t - a) / (b - a)));
-    return k * k * (3 - 2 * k);
+/* ---------- ストロボ（案D2「ストロボとグリッチ」: ほぼ白黒）----------
+   ファーストビュー [data-strobe] は白黒のまま。ロックのテンポ（BPM 150〜180、拍ごとに揺らぎ）で
+   RGB ずれ・コマ飛びのグリッチを刻み、ときどき閃光を入れる。休み・食い気味の裏拍・連打を混ぜて規則的にしない。
+   色（緑・紫・青）は閃光の一瞬だけ、光の当たった部分に薄く差す。
+   光過敏への配慮: 閃光はどの1秒間にも2回まで（1秒に3回以上は出さない）。
+   動きを減らす設定・画面外・タブが裏のときは止める */
+const strobe = document.querySelector<HTMLElement>('[data-strobe]');
+const flash = strobe?.querySelector<HTMLElement>('[data-strobe-flash]');
+const tint = strobe?.querySelector<HTMLElement>('[data-strobe-tint]');
+const splitR = strobe?.querySelector('[data-split-r]');
+const splitB = strobe?.querySelector('[data-split-b]');
+if (strobe && flash && tint) {
+  const colors = ['rgb(40 230 110)', 'rgb(176 64 255)', 'rgb(40 110 255)'];
+  const MAX_FLASH_PER_SEC = 2;
+  const flashes: number[] = [];
+  let color = -1;
+  let timer = 0;
+  let glitchTimer = 0;
+  let active = false;
+  let inView = true;
+  let beat = 400; // 1拍の長さ（ms）。小節ごとに BPM を揺らす
+  let count = 0; // 小節内の拍（0〜3）
+  const rand = (a: number, b: number) => a + Math.random() * (b - a);
+  const chance = (p: number) => Math.random() < p;
+
+  // グリッチ: ずれ幅・型・長さを毎回変える
+  const glitch = (strong = false) => {
+    const dx = Math.round(strong ? rand(26, 40) : rand(12, 28));
+    splitR?.setAttribute('dx', String(-dx));
+    splitB?.setAttribute('dx', String(dx));
+    const ms = Math.round(strong ? rand(180, 240) : rand(90, 170));
+    strobe.style.setProperty('--gd', `${ms}ms`);
+    strobe.classList.remove('is-glitch', 'is-glitch-b');
+    void strobe.offsetWidth; // アニメーションを頭から
+    strobe.classList.add(chance(0.5) ? 'is-glitch' : 'is-glitch-b');
+    clearTimeout(glitchTimer);
+    glitchTimer = window.setTimeout(() => strobe.classList.remove('is-glitch', 'is-glitch-b'), ms);
   };
 
-  room.addEventListener('pointermove', (e) => {
-    if (finePointer.matches) pointer = { x: e.clientX, y: e.clientY };
-  });
-  room.addEventListener('pointerleave', () => (pointer = null));
+  // 直近1秒の閃光が上限に達していないか
+  const canFlash = (now: number) => {
+    while (flashes.length && now - flashes[0] >= 1000) flashes.shift();
+    return flashes.length < MAX_FLASH_PER_SEC;
+  };
 
-  const frame = (now: number) => {
-    const roomRect = room.getBoundingClientRect();
-    // 0: 部屋が画面の一番上 → 1: 部屋が画面の上へ抜けきった
-    const p = Math.min(1, Math.max(0, -roomRect.top / Math.max(1, roomRect.height)));
-    const env = 1 - smooth(0.1, 0.8, p);
-    const t = (now - start) / 1000;
-    const vmin = Math.min(window.innerWidth, window.innerHeight);
-
-    lights.forEach((l) => {
-      const rect = l.el.getBoundingClientRect();
-      if (!rect.width) return;
-      let tx: number;
-      let ty: number;
-      if (pointer) {
-        tx = pointer.x - rect.left;
-        ty = pointer.y - rect.top;
-      } else {
-        // 休んでいる位置のまわりをゆっくり漂い、スクロールに合わせて下手（しもて）へ流れる
-        tx = rect.width * (l.rx + 0.18 * Math.sin(p * Math.PI * 1.6) + 0.04 * Math.sin(t * 0.7));
-        ty = rect.height * (l.ry + 0.35 * p + 0.03 * Math.cos(t * 0.9));
-      }
-      const tr = Math.min(520, Math.max(170, vmin * 0.55)) * env;
-      if (Number.isNaN(l.x)) {
-        l.x = tx;
-        l.y = ty;
-      }
-      // 少し遅れて追いかける（照明さんの手の動き）
-      l.x += (tx - l.x) * 0.1;
-      l.y += (ty - l.y) * 0.1;
-      l.r += (tr - l.r) * 0.06;
-      l.lv += (env - l.lv) * 0.06;
-      const st = l.el.style;
-      st.setProperty('--lx', `${l.x.toFixed(1)}px`);
-      st.setProperty('--ly', `${l.y.toFixed(1)}px`);
-      st.setProperty('--r', `${l.r.toFixed(1)}px`);
-      st.setProperty('--lv', l.lv.toFixed(3));
+  // 閃光＋差し色（一瞬・薄く。同じ色は続けない）。上限なら false
+  const flashHit = () => {
+    const now = performance.now();
+    if (!canFlash(now)) return false;
+    flashes.push(now);
+    color = (color + 1 + Math.floor(Math.random() * (colors.length - 1))) % colors.length;
+    strobe.style.setProperty('--tint', colors[color]);
+    strobe.style.setProperty('--bx', `${Math.round(rand(15, 85))}%`);
+    flash.animate([{ opacity: 0 }, { opacity: 0.6, offset: 0.15 }, { opacity: 0 }], {
+      duration: 200,
+      easing: 'ease-out',
     });
-    if (visible && !reduce.matches) requestAnimationFrame(frame);
-    else running = false;
+    tint.animate([{ opacity: 0 }, { opacity: 0.4, offset: 0.2 }, { opacity: 0 }], {
+      duration: 360,
+      easing: 'ease-out',
+    });
+    return true;
   };
 
-  const run = () => {
-    if (running) return;
-    running = true;
-    requestAnimationFrame(frame);
+  // 1拍ごとに「休み / グリッチ / 閃光＋強いグリッチ」を決める。頭拍は強め、たまに裏拍の追い打ち
+  const tick = () => {
+    if (!active) return;
+    if (count === 0) beat = 60000 / rand(150, 180);
+    const down = count === 0 || count === 2;
+    const r = Math.random();
+    if (r < (down ? 0.22 : 0.12) && flashHit()) glitch(true);
+    else if (r < (down ? 0.75 : 0.5)) glitch(chance(0.3));
+    // 裏拍に食い込む追い打ち（グリッチだけ）
+    if (chance(0.2)) window.setTimeout(() => active && glitch(), beat * rand(0.45, 0.6));
+    count = (count + 1) % 4;
+    // 小節の終わりで、たまに1小節ほど休む（息継ぎ）
+    const rest = count === 0 && chance(0.25) ? beat * rand(2, 4) : 0;
+    clearTimeout(timer);
+    timer = window.setTimeout(tick, beat * rand(0.9, 1.1) + rest);
   };
+
+  const reset = () => {
+    clearTimeout(timer);
+    clearTimeout(glitchTimer);
+    strobe.classList.remove('is-glitch', 'is-glitch-b');
+    count = 0;
+  };
+
+  const start = (ms: number) => {
+    clearTimeout(timer);
+    timer = window.setTimeout(tick, ms);
+  };
+
+  const sync = () => {
+    const should = !reduce.matches && inView && !document.hidden;
+    if (should === active) return;
+    active = should;
+    if (active) start(rand(300, 700));
+    else reset();
+  };
+
   new IntersectionObserver(([e]) => {
-    visible = e.isIntersecting;
-    if (visible && !reduce.matches) run();
-  }).observe(room);
-  run();
-
-  reduce.addEventListener('change', () => {
-    if (!reduce.matches) return;
-    visible = false;
-    lights.forEach((l) => ['--lx', '--ly', '--r', '--lv'].forEach((k) => l.el.style.removeProperty(k)));
-  });
+    inView = e.isIntersecting;
+    sync();
+  }).observe(strobe);
+  document.addEventListener('visibilitychange', sync);
+  reduce.addEventListener('change', sync);
+  // 最初の一撃はロゴが書き終わるころ
+  if (!reduce.matches) {
+    active = true;
+    start(1500);
+  }
 }
 
 /* ---------- 動画カード: 押すとその場で音ありで再生 ---------- */
