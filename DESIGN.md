@@ -1,0 +1,226 @@
+# Design System — BLACK RAM
+
+> 形式は awesome-design-md（VoltAgent）に合わせた。他社の DESIGN.md の見た目は写さず、構造だけ借りている。
+> 見た目の判断はこのファイルが最優先。taste-skill（redesign-existing-projects）など、スキルの指針と食い違うときはこちらに従う。
+> 内容・文言は `docs/site-design.md` と `PRODUCT.md` にあるものだけを使う。
+
+## 1. Visual Theme & Atmosphere
+
+ライブハウスの暗がりと、コピー機で刷ったフライヤーの粗さ。UIは黒（少し温かい黒）と生成りの白だけで引いて、色はライブ写真の照明（緑・紫・青）にだけ出させる。主役は白い筆文字のロゴ、ライブ写真、縦の動画。
+
+- 距離感は最前列。写真は大きく、端まで使って、切れてもいい
+- 写真にだけ粒子（ノイズ）を重ねて、コピーや印刷のざらつきを出す。UIの面はフラットのまま
+- 対称より非対称。左寄せの大きな見出しに対して、写真を右や画面外へずらして置く
+- 避けるもの：整いすぎた企業サイト、ネオンの光るふち、ガラス風の半透明カード、紫〜青の「AIっぽい」グラデーション
+
+## 2. Color Palette & Roles
+
+### Primary Brand
+- **Ink** `#0d0c0b`：ページ全体の地。純黒（`#000`）は使わない
+- **Bone** `#ece8df`：ロゴ、見出し、本文。純白（`#fff`）は使わない
+
+### Text
+- **Bone** `#ece8df`：本文、見出し
+- **Ash** `#8c877d`：日付の補足、注記、終わった公演
+- **Ash Dim** `#5c5850`：無効な状態のみ（本文には使わない）
+
+### Semantic
+- アクセント色は置かない。写真がアクセント
+- 外部リンクは色ではなく `↗` の印で示す
+- 次のライブなどの強調は、Bone の面に Ink の文字（白黒反転）で示す
+
+### Surface & Border
+- **Ink** `#0d0c0b`：地
+- **Soot** `#171614`：カード、開いたフライヤーの背景
+- **Char** `#22201d`：ホバー時の面
+- **Line** `#2e2b27`：区切り線（1px）
+- グレーはすべて同じ温かい色味で揃える。冷たいグレーを混ぜない
+
+### Shadows
+- 影は使わない。重なりは面の明るさの差（Ink → Soot → Char）と線で表す
+- 写真の上の文字は、下側に `linear-gradient(to top, rgb(13 12 11 / .85), transparent 60%)` を敷き、コントラスト比 4.5 以上を守る
+
+## 3. Typography Rules
+
+### Font Families
+- **Display（欧文の見出し）**：`"Big Shoulders Display", "Zen Kaku Gothic New", sans-serif`。縦長で太いコンデンス体
+- **Body（和文・本文）**：`"Zen Kaku Gothic New", "Hiragino Sans", sans-serif`
+- **Numeric（日付・時刻）**：Display と同じ書体に `font-variant-numeric: tabular-nums`
+- ロゴは文字で組まず、必ず画像（`assets/` のロゴ）を使う
+
+### Hierarchy
+
+| 役割 | 書体 | サイズ（スマホ → PC） | 太さ | 行間 | 字間 |
+|---|---|---|---|---|---|
+| セクション見出し（LIVE など） | Display | 56px → 120px | 800 | 0.9 | -0.01em |
+| ライブの日付 | Display | 40px → 64px | 700 | 1.0 | 0 |
+| カードの見出し（EP名など） | Display | 24px → 32px | 700 | 1.1 | 0 |
+| 和文の小見出し | Body | 18px → 20px | 700 | 1.5 | 0.02em |
+| 本文 | Body | 15px → 16px | 400 | 1.8 | 0.04em |
+| 補足・注記 | Body | 13px | 500 | 1.6 | 0.04em |
+| メニュー・ボタン | Display | 16px → 18px | 600 | 1.0 | 0.06em |
+
+### Principles
+- 太さは 400 / 500 / 600 / 700 / 800 を使い分ける。400と700だけにしない
+- 欧文の大きな見出しは字間を詰め、行間を小さくして、重く見せる
+- 欧文の見出しとメニューは大文字（ブランドの一部として意図的に使う）
+- 和文の組み方
+  - `word-break: auto-phrase`（未対応のブラウザ向けに `word-break: keep-all; overflow-wrap: anywhere;` を併記）
+  - 会場名・バンド名・EP名・イベント名は途中で改行させない（`<span class="nowrap">` で囲む）
+  - 見出しと短い文には `text-wrap: balance`、本文には `text-wrap: pretty`
+  - 本文の1行は最大 36em（和文で約36文字）
+
+## 4. Component Stylings
+
+### Buttons
+
+**Outline Square**
+- Background: transparent
+- Text: Bone `#ece8df`
+- Border: `1px solid #ece8df`
+- Padding: 14px 22px
+- Radius: 0
+- Hover: 白黒反転（Background Bone、Text Ink）、220ms
+- Active: `transform: translateY(1px)`
+- Use: 「聴く」「フライヤーを見る」などの主な操作
+
+**Text Link**
+- Text: Bone、下線 1px（`text-underline-offset: 0.25em`）
+- Hover: 下線を 2px に
+- Use: 補助的なリンク、フッター
+
+**Play（動画カード）**
+- Background: `rgb(13 12 11 / .6)`
+- Icon: Bone の三角
+- Size: 56px
+- Radius: 0（正方形）
+- Use: 動画カードの中央
+
+- フォーカス表示：すべての操作できる要素に `outline: 2px solid #ece8df; outline-offset: 3px;`
+- `href="#"` のような飛び先のないリンクは置かない。リンク先が未確認なら、ボタン自体を出さない
+
+### Cards & Containers
+
+**Live Row（ライブ行）**
+- 左に日付（Display、大きめ）、右に会場・タイトル
+- 区切りは上下の Line 1px。カードの枠や影は使わない
+- 次のライブの行だけ白黒反転（Bone の面）
+- 行を押すとフライヤーがその場で下に開く（ポップアップにしない）
+- 終わった公演：文字を Ash にして折りたたみの中へ
+
+**EP Card**
+- 正方形のジャケット＋EP名＋「聴く ↗」
+- 枠なし。ホバーでジャケットを 1.03 倍に拡大（300ms）
+- 3枚を同じ大きさで横に並べない。最新作だけ大きく、他は小さく並べる
+
+**Video Card**
+- 比率 9:16、Radius 0
+- 最初は音なしでポスター画像を表示、押すとその場で音ありで再生
+- 横にスクロールして並べる（スマホ）
+
+**Photo Grid**
+- 縦長・横長が混ざった不揃いのグリッド（隙間 4px）
+- 押すと全画面で拡大、Esc とスワイプで閉じる
+
+### Navigation
+- 上部に固定。左にロゴ（高さ 28px）、右にメニューと SNS アイコン
+- スクロールすると背景が `rgb(13 12 11 / .9)` になる（すりガラスにはしない）
+- 今いるセクションのメニュー項目に下線
+- スマホ：右上のボタンで全画面のメニューを開閉。項目は Display で大きく
+- 最初に「本文へスキップ」のリンクを置く（フォーカスしたときだけ表示）
+
+### Icons
+- 線の太さ 1.5px で統一（Phosphor の Light / Regular）。Lucide・Feather・Font Awesome は使わない
+- SNS は各サービスの公式ロゴの形を Bone の単色で
+
+## 5. Layout Principles
+
+### Spacing System
+- 基準 4px。使う値：4, 8, 12, 16, 24, 32, 48, 64, 96, 128
+- セクションの上下：スマホ 64px / 96px（下を少し広く）、PC 96px / 128px
+
+### Grid & Container
+- 最大幅 1360px、左右の余白はスマホ 16px、PC 40px
+- 12列のグリッド。見出しは左の列から、写真は列を無視して画面端まではみ出してよい
+- 全画面のセクションは `min-height: 100dvh`（`100vh` は使わない）
+
+### Whitespace Philosophy
+- 情報の少なさは余白で埋める。足りない情報をダミーで埋めない
+- 1画面に主役は1つ（ロゴ、写真、日付のどれか）
+
+### Border Radius Scale
+- 0 で統一。丸い角は使わない（SNSアイコンの形の中だけは例外）
+
+## 6. Depth & Elevation
+
+| 層 | 面 | 使う場所 |
+|---|---|---|
+| 0 | Ink `#0d0c0b` | ページの地 |
+| 1 | Soot `#171614` | カード、開いたフライヤー |
+| 2 | Char `#22201d` | ホバー時、メニューを開いたとき |
+| 写真 | 写真＋粒子 | 粒子は SVG の `feTurbulence` を不透明度 0.08 で重ねる |
+
+- z-index は 0 / 10（固定ヘッダー）/ 20（メニュー）/ 30（写真の拡大）の4段だけ
+
+## 7. Do's and Don'ts
+
+### Do
+- ロゴと写真を大きく、端まで使う
+- 動きは 200〜300ms。入ってくる要素は少しずつ時間差でフェード＋下から 12px
+- 動きは `transform` と `opacity` だけで作る
+- 画像には中身を説明する `alt` を付ける（例：「KYOTO MUSE でのライブ。緑の照明の中で演奏するギタリスト」）
+- `<title>`、description、og:image、ファビコン、404ページを用意する
+
+### Don't
+- 外部のダミー画像サービス（picsum、Unsplash の直リンクなど）を使う。taste-skill の推奨より、この禁止を優先する
+- AI生成の人物写真を使う。人物は `assets/` にある本人たちの写真だけ
+- 設計書にない文言（キャッチコピー、メンバー名、日付、数字）を作る
+- 「Elevate」「Unleash」など、AIっぽい決まり文句を使う。「！」も使わない
+- 同じ大きさのカード3枚を横に並べる
+- 中央揃えの「見出し＋説明＋ボタン」だけのヒーロー
+- グラデーションの文字、光るふち、半透明のガラス風カード、影
+- スクロールを乗っ取る演出、慣性スクロール
+- ポップアップ（`alert`、モーダルでの確認）
+
+## 8. Responsive Behavior
+
+### Breakpoints
+| 名前 | 幅 | 主な変化 |
+|---|---|---|
+| Mobile | 〜767px | 基準。1列。メニューは開閉式。写真2列 |
+| Tablet | 768〜1199px | 写真3列。ライブ行は日付と会場を横並び |
+| Desktop | 1200px〜 | ヒーローの縦動画を右寄せ、左にロゴを大きく。写真4列 |
+
+### Collapsing Strategy
+- ライブ行：スマホでは日付を上、会場とタイトルを下に積む
+- EP：スマホでは最新作を幅いっぱい、他は2列
+- 動画：スマホは横スクロール、PCは横に並べる
+- 確認する幅：390px（スマホ）と 1280px（PC）
+
+### Motion & Accessibility
+- `prefers-reduced-motion: reduce` のとき：動画の自動再生を止めてポスター画像を出す。入ってくる動き、拡大の動きは止め、全内容がそのまま見えること
+- 押せる部分の大きさは 44×44px 以上
+
+## 9. Agent Prompt Guide
+
+### Quick Color Reference
+```
+Ink      #0d0c0b  地
+Soot     #171614  カード
+Char     #22201d  ホバー
+Line     #2e2b27  区切り線
+Bone     #ece8df  文字・ロゴ
+Ash      #8c877d  補足
+```
+
+### Example Component Prompts
+- 「ライブ行：左に日付を Big Shoulders Display 700 の 64px（スマホ 40px）、等幅数字で。右に会場名（途中で改行しない）とイベント名。上下に `#2e2b27` の1px線。次のライブの行は Bone の面に Ink の文字。押すとフライヤー画像がその場で下に開く」
+- 「ヒーロー：`min-height: 100dvh`。縦リール動画を音なしでループ。PCは動画を右寄せで高さいっぱい、左にロゴ画像を大きく。スマホは動画を全面に敷き、下側に Ink のグラデーションを敷いてロゴを下寄せ。動きを減らす設定ではポスター画像」
+- 「EPセクション：最新作 RAM'S BALL のジャケットを大きく、BABY TANK と ASS HOLE は小さく。各ジャケットの下に Display の EP名と『聴く ↗』の Outline Square ボタン。リンク先が未確認の EP にはボタンを出さない」
+
+### Iteration Guide
+1. 読む順番：この DESIGN.md → `docs/site-design.md` → `PRODUCT.md` → `assets/`
+2. テンプレっぽさを避ける指針として `redesign-existing-projects`（taste-skill）を読む。食い違いはこのファイルを優先
+3. 素材は `assets/` のものだけ。足りない情報は空欄にして、何が足りないか報告する
+4. 迷ったら「足す」より「引く」
+5. デザインを変えたら、このファイルも同時に更新する
