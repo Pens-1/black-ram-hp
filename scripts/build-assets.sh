@@ -43,6 +43,9 @@ vid "$A/video/reel-DX6GmLdRm4f.mp4" reel-DX6GmLdRm4f 9
 ffmpeg -y -loglevel error -i "$A/video/reel-DaWx4pxxqvu.mp4" -vf "scale=-2:'min(1280,ih)'" -c:v libx264 -preset slow -crf 31 \
   -profile:v high -pix_fmt yuv420p -an -movflags +faststart "$P/video/hero.mp4"
 
+# 案C: 暗転した地の写真（白黒・網点・粒子）→ public/img/stage/
+python3 -I scripts/make-stage.py .
+
 # ロゴ（暫定）とファビコン
 python3 -I scripts/make-logo.py .
 

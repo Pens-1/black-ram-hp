@@ -161,6 +161,21 @@ export const profile = {
   text: '',
 };
 
+/**
+ * 案C「暗転と照明」: 各セクションの地に敷く写真。
+ * dark = scripts/make-stage.py で作った暗い白黒（網点・粒子）、lit = 照明が当たった部分に出す元のカラー写真
+ */
+export type Stage = { dark: string; lit: Img };
+const pick = (list: Img[], src: string): Img => {
+  const found = list.find((i) => i.src === src);
+  if (!found) throw new Error(`写真が見つからない: ${src}`);
+  return found;
+};
+export const stages = {
+  // ファーストビュー（PC）の地: KYOTO MUSE の緑の照明
+  hero: { dark: '/img/stage/live-s9', lit: pick(photos, '/img/photo/DcHOFc4E20Q-s9') },
+} satisfies Record<string, Stage>;
+
 export const meta = {
   title: 'BLACK RAM',
   description: 'BLACK RAM 公式サイト。ライブ予定、音源、映像、写真、グッズ。',

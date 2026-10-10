@@ -284,19 +284,165 @@ ol {
   pointer-events: none;
 }
 
-/* ---------- 入ってくる動き（JSがあり、動きを減らさない設定のときだけ） ---------- */
-@media (prefers-reduced-motion: no-preference) {
-  .js [data-reveal] {
-    opacity: 0;
-    transform: translateY(12px);
-    transition:
-      opacity 300ms var(--ease),
-      transform 300ms var(--ease);
-    transition-delay: calc(var(--i, 0) * 60ms);
-  }
+/* ==========================================================================
+   案C「暗転と照明」
+   ページは暗転したステージ。写真は暗い白黒の地として敷き、
+   照明（--lx / --ly / --r）が当たった部分だけ元の色がにじみ出る。
+   照明の位置と大きさは main.ts が動かす。JSなし・動きを減らす設定では、決まった位置に止まった照明になる
+   ========================================================================== */
 
-  .js [data-reveal].is-in {
-    opacity: 1;
-    transform: none;
+@property --r {
+  syntax: '<length-percentage>';
+  inherits: true;
+  initial-value: 0%;
+}
+
+/* ---------- 地の写真（stage）: 暗い白黒の上に、照明の形で切り抜いたカラー写真 ---------- */
+.stage {
+  --lx: 60%;
+  --ly: 40%;
+  --r: clamp(170px, 55vmin, 520px);
+  --lv: 1;
+  position: relative;
+  overflow: hidden;
+  background: var(--ink);
+}
+
+.stage img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.stage-dark {
+  opacity: calc(0.3 + 0.7 * var(--lv));
+}
+
+.stage-lit {
+  position: absolute;
+  inset: 0;
+  -webkit-mask-image: radial-gradient(
+    ellipse var(--r) var(--r) at var(--lx) var(--ly),
+    #000 0%,
+    rgb(0 0 0 / 0.8) 35%,
+    rgb(0 0 0 / 0.3) 70%,
+    transparent 100%
+  );
+  mask-image: radial-gradient(
+    ellipse var(--r) var(--r) at var(--lx) var(--ly),
+    #000 0%,
+    rgb(0 0 0 / 0.8) 35%,
+    rgb(0 0 0 / 0.3) 70%,
+    transparent 100%
+  );
+}
+
+/* 写真の粒子 */
+.stage::after,
+.lamp::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: var(--grain);
+  background-size: 240px 240px;
+  opacity: 0.08;
+  pointer-events: none;
+}
+
+/* ---------- 小さな照明（lamp）: 写真・動画そのものを暗い白黒に落とし、照明の部分だけ色を戻す ---------- */
+.lamp {
+  --lx: 50%;
+  --ly: 45%;
+  --r: 0%;
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  background: var(--ink);
+}
+
+.shade {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  -webkit-mask-image: radial-gradient(
+    ellipse var(--r) var(--r) at var(--lx) var(--ly),
+    transparent 0%,
+    transparent 30%,
+    rgb(0 0 0 / 0.6) 65%,
+    #000 100%
+  );
+  mask-image: radial-gradient(
+    ellipse var(--r) var(--r) at var(--lx) var(--ly),
+    transparent 0%,
+    transparent 30%,
+    rgb(0 0 0 / 0.6) 65%,
+    #000 100%
+  );
+}
+
+/* 色を抜く層（彩度0のグレーを saturation で重ねる）と、暗く沈める層 */
+.shade-desat {
+  background: #808080;
+  mix-blend-mode: saturation;
+}
+
+.shade-dim {
+  background: rgb(13 12 11 / 0.66);
+}
+
+.lamp.is-lit {
+  --r: 85%;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .lamp {
+    transition: --r 520ms var(--ease);
   }
+}
+
+/* ---------- 粒子（8〜12fps でちらつく）。親を overflow: hidden にして中に置く ---------- */
+.film {
+  position: absolute;
+  inset: -50%;
+  pointer-events: none;
+  background-image: var(--grain);
+  background-size: 240px 240px;
+  opacity: 0.05;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .film {
+    animation: film 0.5s steps(5) infinite;
+  }
+}
+
+@keyframes film {
+  0% {
+    transform: translate(0, 0);
+  }
+  20% {
+    transform: translate(-37px, 21px);
+  }
+  40% {
+    transform: translate(53px, -44px);
+  }
+  60% {
+    transform: translate(-12px, 66px);
+  }
+  80% {
+    transform: translate(29px, -9px);
+  }
+}
+
+/* ---------- 写真の上に文字を組むときの下敷き（コントラスト比 4.5 以上） ---------- */
+.scrim {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(to top, rgb(13 12 11 / 0.85), transparent 60%);
+}
+
+/* JS が毎フレーム動かす照明は、CSS の遷移をかけない */
+.lamp[data-stage] {
+  transition: none;
 }

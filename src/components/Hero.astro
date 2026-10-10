@@ -1,9 +1,18 @@
 ---
-import { hero } from '../data/site';
+import Shade from './Shade.astro';
+import Stage from './Stage.astro';
+import { hero, stages } from '../data/site';
 ---
 
-<section class="hero" id="top" aria-label="BLACK RAM">
-  <div class="media grain">
+<!--
+  案C「暗転と照明」のファーストビュー。
+  PC: 暗く沈めた白黒のライブ写真を全面に敷き、カーソルの照明が当たった部分だけ緑がにじむ。右の縦動画にも同じ照明が当たる。
+  スマホ: 縦動画を全面に敷き、スクロール位置で照明が動く。下へ抜けると照明が絞られて暗転する。
+-->
+<section class="hero" id="top" aria-label="BLACK RAM" data-light-room>
+  <Stage class="ground" stage={stages.hero} sizes="100vw" rest="30% 46%" eager />
+  <!-- 映像は暗い白黒に沈め、照明の当たる部分だけ色を戻す（PCはカーソル、スマホはスクロール位置） -->
+  <div class="media lamp" data-stage data-rest="50% 36%" style="--lx:50%;--ly:36%">
     <video
       class="hero-video"
       muted
@@ -17,15 +26,12 @@ import { hero } from '../data/site';
     >
       <source src={hero.video} type="video/mp4" />
     </video>
+    <Shade />
   </div>
+  <div class="fade" aria-hidden="true"></div>
+  <div class="film-wrap" aria-hidden="true"><div class="film"></div></div>
   <h1 class="logo">
-    <img
-      src="/logo/logo-full.webp"
-      width="1200"
-      height="1166"
-      alt="BLACK RAM"
-      fetchpriority="high"
-    />
+    <img src="/logo/logo-full.webp" width="1200" height="1166" alt="BLACK RAM" fetchpriority="high" />
   </h1>
 </section>
 
@@ -39,9 +45,24 @@ import { hero } from '../data/site';
     background: var(--ink);
   }
 
+  /* 地の写真は PC だけ（スマホは動画が地） */
+  .hero :global(.ground) {
+    display: none;
+  }
+
+  .film-wrap {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    overflow: hidden;
+    pointer-events: none;
+  }
+
   .media {
     position: absolute;
     inset: 0;
+    /* JSなし・動きを減らす設定で止まる照明 */
+    --r: clamp(170px, 55vmin, 520px);
   }
 
   .hero-video {
@@ -50,14 +71,12 @@ import { hero } from '../data/site';
     object-fit: cover;
   }
 
-  /* スマホ: 動画を全面に敷き、下側に Ink のグラデーション */
-  .media::before {
-    content: '';
+  /* スマホ: 下側に Ink のグラデーションを敷いてロゴを下寄せ */
+  .fade {
     position: absolute;
     inset: 0;
-    z-index: 1;
-    background: linear-gradient(to top, rgb(13 12 11 / 0.92), rgb(13 12 11 / 0.35) 45%, transparent 70%);
     pointer-events: none;
+    background: linear-gradient(to top, rgb(13 12 11 / 0.92), rgb(13 12 11 / 0.3) 45%, transparent 70%);
   }
 
   .logo {
@@ -69,6 +88,30 @@ import { hero } from '../data/site';
 
   .logo img {
     width: 100%;
+  }
+
+  /* ロゴ: 筆で書かれるように左から現れる */
+  @media (prefers-reduced-motion: no-preference) {
+    .logo img {
+      -webkit-mask-image: linear-gradient(90deg, #000 40%, transparent 60%);
+      mask-image: linear-gradient(90deg, #000 40%, transparent 60%);
+      -webkit-mask-size: 250% 100%;
+      mask-size: 250% 100%;
+      -webkit-mask-repeat: no-repeat;
+      mask-repeat: no-repeat;
+      animation: brush 1.2s cubic-bezier(0.45, 0.05, 0.35, 1) 0.25s both;
+    }
+  }
+
+  @keyframes brush {
+    from {
+      -webkit-mask-position: 100% 0;
+      mask-position: 100% 0;
+    }
+    to {
+      -webkit-mask-position: 0 0;
+      mask-position: 0 0;
+    }
   }
 
   @media (min-width: 768px) and (max-width: 1199px) {
@@ -98,8 +141,33 @@ import { hero } from '../data/site';
       margin-right: calc((100vw - min(100vw, var(--max))) / -2);
     }
 
-    .media::before {
-      background: linear-gradient(to right, rgb(13 12 11 / 0.7), transparent 30%);
+    .hero :global(.ground) {
+      display: block;
+      position: absolute;
+      inset: 0;
+      /* 1360px の枠の外まで、画面の端から端へ敷く */
+      left: calc((100vw - min(100vw, var(--max))) / -2);
+      right: calc((100vw - min(100vw, var(--max))) / -2);
+    }
+
+    .hero :global(.ground img) {
+      object-position: 50% 40%;
+    }
+
+    /* ロゴの下を暗く落としてコントラストを守る */
+    .fade {
+      left: calc((100vw - min(100vw, var(--max))) / -2);
+      background: linear-gradient(to right, rgb(13 12 11 / 0.7), rgb(13 12 11 / 0.2) 50%, transparent 70%);
+    }
+
+    .film-wrap {
+      left: calc((100vw - min(100vw, var(--max))) / -2);
+      right: calc((100vw - min(100vw, var(--max))) / -2);
+    }
+
+    .media,
+    .logo {
+      z-index: 1;
     }
 
     .logo {

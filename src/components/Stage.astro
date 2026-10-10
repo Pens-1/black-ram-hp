@@ -1,0 +1,44 @@
+---
+// 照明の当たる地の写真。暗い白黒（dark）の上に、照明の形で切り抜いたカラー写真（lit）を重ねる
+import { srcset, type Stage } from '../data/site';
+
+interface Props {
+  stage: Stage;
+  sizes: string;
+  /** 照明が休んでいる位置（"x y"）。JSなし・動きを減らす設定ではここに止まる */
+  rest?: string;
+  class?: string;
+  /** ファーストビューに置くときは true（遅延読み込みしない） */
+  eager?: boolean;
+}
+const { stage, sizes, rest = '60% 40%', class: cls, eager = false } = Astro.props;
+const loading = eager ? 'eager' : 'lazy';
+const { lit } = stage;
+const dark = { ...lit, src: stage.dark };
+const [lx, ly] = rest.split(' ');
+---
+
+<div class:list={['stage', cls]} data-stage data-rest={rest} style={`--lx:${lx};--ly:${ly}`}>
+  <img
+    class="stage-dark"
+    src={`${dark.src}-s.webp`}
+    srcset={srcset(dark)}
+    sizes={sizes}
+    width={dark.w}
+    height={dark.h}
+    alt=""
+    loading={loading}
+    decoding="async"
+  />
+  <img
+    class="stage-lit"
+    src={`${lit.src}-s.webp`}
+    srcset={srcset(lit)}
+    sizes={sizes}
+    width={lit.w}
+    height={lit.h}
+    alt={lit.alt}
+    loading={loading}
+    decoding="async"
+  />
+</div>

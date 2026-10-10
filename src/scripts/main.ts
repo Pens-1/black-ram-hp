@@ -72,6 +72,91 @@ function syncHero(initial = false) {
 syncHero(true);
 reduce.addEventListener('change', () => syncHero());
 
+/* ---------- 照明（案C「暗転と照明」）----------
+   [data-light-room] の中の [data-stage] に、1つの照明を当てる。
+   PC（カーソルあり）: カーソルの位置。スマホ: スクロール位置で照明が動く。
+   部屋が画面の上へ抜けるほど照明が絞られ、地も暗くなる（暗転）。
+   動きを減らす設定では何もしない（CSS の決まった位置に止まった照明のまま） */
+const room = document.querySelector<HTMLElement>('[data-light-room]');
+if (room && !reduce.matches) {
+  const finePointer = window.matchMedia('(hover: hover) and (pointer: fine)');
+  const lights = Array.from(room.querySelectorAll<HTMLElement>('[data-stage]')).map((el) => {
+    const [rx, ry] = (el.dataset.rest ?? '50% 50%').split(' ').map((v) => parseFloat(v) / 100);
+    return { el, rx, ry, x: NaN, y: NaN, r: 0, lv: 0 };
+  });
+  let pointer: { x: number; y: number } | null = null;
+  let running = false;
+  let visible = true;
+  const start = performance.now();
+  const smooth = (a: number, b: number, t: number) => {
+    const k = Math.min(1, Math.max(0, (t - a) / (b - a)));
+    return k * k * (3 - 2 * k);
+  };
+
+  room.addEventListener('pointermove', (e) => {
+    if (finePointer.matches) pointer = { x: e.clientX, y: e.clientY };
+  });
+  room.addEventListener('pointerleave', () => (pointer = null));
+
+  const frame = (now: number) => {
+    const roomRect = room.getBoundingClientRect();
+    // 0: 部屋が画面の一番上 → 1: 部屋が画面の上へ抜けきった
+    const p = Math.min(1, Math.max(0, -roomRect.top / Math.max(1, roomRect.height)));
+    const env = 1 - smooth(0.1, 0.8, p);
+    const t = (now - start) / 1000;
+    const vmin = Math.min(window.innerWidth, window.innerHeight);
+
+    lights.forEach((l) => {
+      const rect = l.el.getBoundingClientRect();
+      if (!rect.width) return;
+      let tx: number;
+      let ty: number;
+      if (pointer) {
+        tx = pointer.x - rect.left;
+        ty = pointer.y - rect.top;
+      } else {
+        // 休んでいる位置のまわりをゆっくり漂い、スクロールに合わせて下手（しもて）へ流れる
+        tx = rect.width * (l.rx + 0.18 * Math.sin(p * Math.PI * 1.6) + 0.04 * Math.sin(t * 0.7));
+        ty = rect.height * (l.ry + 0.35 * p + 0.03 * Math.cos(t * 0.9));
+      }
+      const tr = Math.min(520, Math.max(170, vmin * 0.55)) * env;
+      if (Number.isNaN(l.x)) {
+        l.x = tx;
+        l.y = ty;
+      }
+      // 少し遅れて追いかける（照明さんの手の動き）
+      l.x += (tx - l.x) * 0.1;
+      l.y += (ty - l.y) * 0.1;
+      l.r += (tr - l.r) * 0.06;
+      l.lv += (env - l.lv) * 0.06;
+      const st = l.el.style;
+      st.setProperty('--lx', `${l.x.toFixed(1)}px`);
+      st.setProperty('--ly', `${l.y.toFixed(1)}px`);
+      st.setProperty('--r', `${l.r.toFixed(1)}px`);
+      st.setProperty('--lv', l.lv.toFixed(3));
+    });
+    if (visible && !reduce.matches) requestAnimationFrame(frame);
+    else running = false;
+  };
+
+  const run = () => {
+    if (running) return;
+    running = true;
+    requestAnimationFrame(frame);
+  };
+  new IntersectionObserver(([e]) => {
+    visible = e.isIntersecting;
+    if (visible && !reduce.matches) run();
+  }).observe(room);
+  run();
+
+  reduce.addEventListener('change', () => {
+    if (!reduce.matches) return;
+    visible = false;
+    lights.forEach((l) => ['--lx', '--ly', '--r', '--lv'].forEach((k) => l.el.style.removeProperty(k)));
+  });
+}
+
 /* ---------- 動画カード: 押すとその場で音ありで再生 ---------- */
 const reels = Array.from(document.querySelectorAll<HTMLElement>('[data-reel]'));
 reels.forEach((frame) => {
