@@ -1,0 +1,86 @@
+[
+  {
+    "title": "RAM'S BALL",
+    "kind": "EP",
+    "release": "",
+    "href": "https://linkco.re/3CcSGHyp",
+    "spotify": "6mcCk4SAouwsYp4cj9z692",
+    "services": [
+      {
+        "name": "Spotify",
+        "href": "https://open.spotify.com/album/6mcCk4SAouwsYp4cj9z692"
+      },
+      {
+        "name": "Apple Music",
+        "href": "https://music.apple.com/jp/album/rams-ball-single/6809121654"
+      },
+      {
+        "name": "YouTube Music",
+        "href": "https://music.youtube.com/playlist?list=OLAK5uy_nzqhtBYsp06Ly0y6DgxTSTPmwADggNwM0"
+      },
+      {
+        "name": "LINE MUSIC",
+        "href": "https://www.tunecore.co.jp/to/line/1726936"
+      },
+      {
+        "name": "Amazon Music",
+        "href": "https://www.tunecore.co.jp/to/amazon_music/1726936"
+      }
+    ],
+    "cover": {
+      "src": "/img/music/rams-ball",
+      "w": 400,
+      "h": 400,
+      "small": false
+    }
+  },
+  {
+    "title": "BABY TANK",
+    "kind": "EP",
+    "release": "",
+    "href": "https://linkco.re/tM5cbf6t",
+    "spotify": "7cgggJee3zl2h7IODPjS9p",
+    "services": [
+      {
+        "name": "Spotify",
+        "href": "https://open.spotify.com/album/7cgggJee3zl2h7IODPjS9p"
+      },
+      {
+        "name": "Apple Music",
+        "href": "https://music.apple.com/jp/album/baby-tank-single/6776646587"
+      },
+      {
+        "name": "YouTube Music",
+        "href": "https://music.youtube.com/playlist?list=OLAK5uy_lPjwJIhKskSOvItgZ2u8nEhS-tL1s4UTE"
+      },
+      {
+        "name": "LINE MUSIC",
+        "href": "https://www.tunecore.co.jp/to/line/1807275"
+      },
+      {
+        "name": "Amazon Music",
+        "href": "https://www.tunecore.co.jp/to/amazon_music/1807275"
+      }
+    ],
+    "cover": {
+      "src": "/img/music/baby-tank",
+      "w": 400,
+      "h": 400,
+      "small": false
+    }
+  },
+  {
+    "title": "ASS HOLE",
+    "kind": "EP",
+    "release": "",
+    "href": "",
+    "spotify": "",
+    "services": [],
+    "cover": {
+      "src": "/img/music/ass-hole",
+      "w": 400,
+      "h": 400,
+      "small": false
+    }
+  }
+]

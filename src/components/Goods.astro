@@ -1,14 +1,17 @@
 ---
-// グッズ（Tシャツ）。購入方法は未確認なので写真だけ。
-// 1枚目は暗い白黒に刷った地（照明が当たった所だけ色が出る）として断ち切りで敷き、残りは段違いに重ねる
+// グッズ。写真の演出: 1枚目は暗い白黒に刷った地（照明が当たった所だけ色が出る）として断ち切りで敷き、残りは段違いに重ねる。
+// その下に、スプレッドシート「グッズ」の商品（名前・値段・サイズ色・写真・買うボタン／SOLD OUT）。
+// 値段も買うリンクもない（売り切れでもない）商品は、写真の見せ方を崩さないよう名前だけ並べる
 import Stage from './Stage.astro';
-import { goods, srcset, stages } from '../data/site';
+import { goods, goodsItems, srcset, stages, thumb } from '../data/site';
 
 interface Props {
   /** ページの見出しの地に使った写真（重ねて出さない） */
   exclude?: string;
 }
 const rest = goods.filter((g) => g.src !== Astro.props.exclude && g.src !== stages.goods.lit.src);
+const items = goodsItems.filter((g) => g.price || g.href || g.soldOut);
+const names = goodsItems.filter((g) => !items.includes(g));
 ---
 
 <section class="goods" aria-label="グッズの写真">
@@ -35,7 +38,146 @@ const rest = goods.filter((g) => g.src !== Astro.props.exclude && g.src !== stag
   </ul>
 </section>
 
+{
+  goodsItems.length > 0 && (
+    <section class="items" aria-label="グッズの商品">
+      {items.length > 0 && (
+        <ul class="cards">
+          {items.map((g) => (
+            <li class="card" data-reveal>
+              {g.photo && (
+                <div class="card-photo grain">
+                  <img
+                    src={thumb(g.photo)}
+                    srcset={srcset(g.photo)}
+                    sizes="(min-width: 768px) 30vw, 100vw"
+                    width={g.photo.w}
+                    height={g.photo.h}
+                    alt={g.photo.alt}
+                    loading="lazy"
+                    decoding="async"
+                  />
+                </div>
+              )}
+              <h2 class="card-name">{g.name}</h2>
+              {g.variants && <p class="card-variants">{g.variants}</p>}
+              {g.price && <p class="card-price">{g.price}</p>}
+              {g.soldOut ? (
+                <span class="btn soldout" aria-disabled="true">
+                  SOLD OUT
+                </span>
+              ) : (
+                g.href && (
+                  <a class="btn ext" href={g.href} target="_blank" rel="noopener">
+                    <span class="ja">買う</span>
+                    <span class="sr-only">（{g.name}）</span>
+                  </a>
+                )
+              )}
+            </li>
+          ))}
+        </ul>
+      )}
+      {names.length > 0 && (
+        <ul class="names" data-reveal>
+          {names.map((g) => (
+            <li>{g.name}</li>
+          ))}
+        </ul>
+      )}
+    </section>
+  )
+}
+
 <style>
+  .items {
+    display: grid;
+    gap: 48px;
+    max-width: var(--max);
+    margin-inline: auto;
+    padding: 0 var(--gutter) 96px;
+  }
+
+  .cards {
+    display: grid;
+    gap: 48px 32px;
+  }
+
+  .card {
+    display: grid;
+    gap: 12px;
+    align-content: start;
+    justify-items: start;
+  }
+
+  .card-photo {
+    width: 100%;
+    background: var(--soot);
+  }
+
+  .card-photo img {
+    width: 100%;
+    aspect-ratio: 1;
+    object-fit: cover;
+  }
+
+  .card-name {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: clamp(24px, 19px + 1vw, 32px);
+    line-height: 1.1;
+    text-transform: uppercase;
+  }
+
+  .card-variants {
+    color: var(--ash);
+    font-size: 15px;
+  }
+
+  .card-price {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 20px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .card .btn {
+    margin-top: 4px;
+  }
+
+  /* 売り切れ: 押せない。Ash Dim（無効な状態の色） */
+  .soldout,
+  .soldout:hover {
+    border-color: var(--ash-dim);
+    background: transparent;
+    color: var(--ash-dim);
+    cursor: not-allowed;
+  }
+
+  .soldout:active {
+    transform: none;
+  }
+
+  /* 値段もリンクもない商品: 名前だけを上下の線で区切って並べる */
+  .names {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 24px;
+    padding-block: 16px;
+    border-block: 1px solid var(--line);
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: clamp(24px, 19px + 1vw, 32px);
+    line-height: 1.4;
+    text-transform: uppercase;
+  }
+
+  @media (min-width: 768px) {
+    .cards {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+
   .goods {
     padding-block: 0 96px;
     max-width: var(--max);

@@ -1,14 +1,19 @@
 // サイトの中身はすべてここに集める。
 // 事実は PRODUCT.md / docs/site-design.md にあるものだけ。未確認の項目は空のまま（創作しない）。
 
-export type Img = { src: string; w: number; h: number; alt: string };
+import sheetLivesJson from './sheet/lives.json';
+import sheetSongsJson from './sheet/songs.json';
+import sheetGoodsJson from './sheet/goods.json';
+
+/** small: 一覧用の `-s.webp` があるか（省略時はある扱い） */
+export type Img = { src: string; w: number; h: number; alt: string; small?: boolean };
 
 /** public/ 以下の WebP。`<name>.webp`（長辺 ≤1600）と `<name>-s.webp`（長辺 ≤800）がある */
 export const img = (path: string, w: number, h: number, alt: string): Img => ({ src: path, w, h, alt });
 
 export function srcset(i: Img): string {
   const long = Math.max(i.w, i.h);
-  if (long <= 800) return `${i.src}.webp ${i.w}w`;
+  if (long <= 800 || i.small === false) return `${i.src}.webp ${i.w}w`;
   const sw = Math.round((i.w * 800) / long);
   return `${i.src}-s.webp ${sw}w, ${i.src}.webp ${i.w}w`;
 }
@@ -41,70 +46,133 @@ export const pages = [
   { href: '/past-live/', label: 'PAST LIVE' },
 ] as const;
 
-/** 次のライブ（PRODUCT.md「次のライブ」の確定情報だけ。チケット予約方法・出演順・フライヤーは未確認なので持たない） */
-export const nextLive = {
-  /** 公演日（日本時間） */
-  date: '2026-10-20',
-  /** この時刻を過ぎたら「次のライブは近日発表」に切り替える（日本時間の翌日 0 時） */
-  endsAt: '2026-10-21T00:00:00+09:00',
-  month: 10,
-  day: 20,
-  weekday: '火',
-  area: '梅田',
-  venue: 'ODYSSEY',
-  title: 'VOLTAGE',
-  open: '17:30',
-  start: '18:00',
-  price: 'ADV/DOOR ¥2,500（＋1D ¥700）',
-  acts: ['BLACK RAM', "Neo'n'eat", 'bloom in zero', 'Skade', 'PANdeMIX'],
-};
+/* ---------- スプレッドシート由来（ライブ・曲・グッズ） ----------
+   scripts/fetch-sheet.mjs がビルド前にシートを読み、src/data/sheet/*.json に書き出す（docs/sheet-update.md）。
+   ここではその JSON を、ビルド時の日付で「次のライブ／過去のライブ」「最新作」に振り分けるだけ */
 
-/** 次のライブが終わったか（ビルド時の判定。表示時は main.ts がもう一度判定する） */
-export const nextLiveEnded = (now = new Date()) => now.getTime() >= new Date(nextLive.endsAt).getTime();
-
-export type Live = {
-  /** 月/日。年は未確認なので持たない */
+type SheetImg = { src: string; w: number; h: number; small: boolean };
+type SheetLive = {
+  year: number | null;
   month: number;
   day: number;
+  area: string;
   venue: string;
-  title?: string;
-  /** フライヤーに書かれている情報（フライヤー画像のテキスト代替も兼ねる） */
-  details?: string[];
+  title: string;
+  open: string;
+  start: string;
+  price: string;
+  acts: string[];
+  actTime: string;
+  ticket: string;
+  flyer: SheetImg | null;
+};
+type SheetSong = {
+  title: string;
+  kind: string;
+  release: string;
+  href: string;
+  spotify: string;
+  services: Service[];
+  cover: SheetImg | null;
+};
+type SheetGoods = {
+  name: string;
+  price: string;
+  variants: string;
+  href: string;
+  soldOut: boolean;
+  photo: SheetImg | null;
+};
+
+const sheetLives = sheetLivesJson as SheetLive[];
+const sheetSongs = sheetSongsJson as SheetSong[];
+const sheetGoods = sheetGoodsJson as SheetGoods[];
+
+// 以前から手で書いていた画像の説明（alt）。シートにない画像は内容から組み立てる
+const knownAlt: Record<string, string> = {
+  '/img/live/0622-gattaca':
+    '6月22日 LIVE HOUSE GATTACA「天変地異」のフライヤー。出演 Festina Lente、hakumeii、龍之介 (Slipout Blank)、BLACK RAM。OPEN 18:30 START 19:00、ADV ¥2400 DOOR ¥2900',
+  '/img/live/0814-kyoto-muse': '「8月14日 KYOTO MUSE」の告知画像。電車の扉に書かれた BLACK RAM の文字',
+  '/img/music/rams-ball': "EP「RAM'S BALL」のジャケット。炎に包まれた手",
+  '/img/music/baby-tank': 'EP「BABY TANK」のジャケット。白地に描かれた骨の手',
+  '/img/music/ass-hole': 'EP「ASS HOLE」のジャケット。黒地に白い筆文字の BLACK RAM ロゴと羊の頭蓋骨',
+  '/img/goods/Db_ZAHkk-q8': '地面に置かれた黒いTシャツ。胸に白いグラフィック',
+};
+const toImg = (i: SheetImg | null, alt: string): Img | undefined =>
+  i ? { src: i.src, w: i.w, h: i.h, small: i.small, alt: knownAlt[i.src] ?? alt } : undefined;
+
+const pad2 = (n: number) => String(n).padStart(2, '0');
+const WEEKDAYS = ['日', '月', '火', '水', '木', '金', '土'];
+
+export type Live = {
+  /** 公演日 YYYY-MM-DD（日本時間）。年が分からない古いライブは null */
+  date: string | null;
+  month: number;
+  day: number;
+  /** 曜日（年が分かるときだけ） */
+  weekday: string;
+  /** この時刻を過ぎたら終わった扱い（公演日の翌日 0 時、日本時間）。年なしは null（過去扱い） */
+  endsAt: string | null;
+  area: string;
+  venue: string;
+  title: string;
+  open: string;
+  start: string;
+  price: string;
+  acts: string[];
+  /** BLACK RAM の出演時間（空なら出さない） */
+  actTime: string;
+  /** チケット・予約のリンク（空ならボタンを出さない） */
+  ticket: string;
+  /** フライヤーに書かれている情報（過去のライブでフライヤーと一緒に出す） */
+  details: string[];
   flyer?: Img;
 };
 
-// 過去のライブ（/past-live/）。年が未確認なので月日だけ。古い順に並べ、ページでは新しい順に出す
-// 次のライブ（nextLive）は日付が過ぎると、このページの先頭にも出る
-export const lives: Live[] = [
-  {
-    month: 6,
-    day: 22,
-    venue: 'GATTACA',
-    title: '天変地異',
+function toLive(l: SheetLive): Live {
+  const date = l.year ? `${l.year}-${pad2(l.month)}-${pad2(l.day)}` : null;
+  // 公演日の翌日 0 時（日本時間）。Date.UTC は月末の繰り上がりを処理する
+  const next = date ? new Date(Date.UTC(l.year!, l.month - 1, l.day + 1)) : null;
+  const endsAt = next
+    ? `${next.getUTCFullYear()}-${pad2(next.getUTCMonth() + 1)}-${pad2(next.getUTCDate())}T00:00:00+09:00`
+    : null;
+  const weekday = l.year ? WEEKDAYS[new Date(Date.UTC(l.year, l.month - 1, l.day)).getUTCDay()] : '';
+  const label = `${l.month}月${l.day}日 ${l.venue}${l.title ? `「${l.title}」` : ''}`;
+  return {
+    ...l,
+    date,
+    weekday,
+    endsAt,
     details: [
-      'Festina Lente / hakumeii / 龍之介 (Slipout Blank) / BLACK RAM',
-      'OPEN 18:30 / START 19:00',
-      'ADV ¥2400 / DOOR ¥2900',
-    ],
-    flyer: img(
-      '/img/live/0622-gattaca',
-      1200,
-      1600,
-      '6月22日 LIVE HOUSE GATTACA「天変地異」のフライヤー。出演 Festina Lente、hakumeii、龍之介 (Slipout Blank)、BLACK RAM。OPEN 18:30 START 19:00、ADV ¥2400 DOOR ¥2900',
-    ),
-  },
-  {
-    month: 8,
-    day: 14,
-    venue: 'KYOTO MUSE',
-    flyer: img(
-      '/img/live/0814-kyoto-muse',
-      1526,
-      1600,
-      '「8月14日 KYOTO MUSE」の告知画像。電車の扉に書かれた BLACK RAM の文字',
-    ),
-  },
-];
+      l.acts.join(' / '),
+      [l.open && `OPEN ${l.open}`, l.start && `START ${l.start}`].filter(Boolean).join(' / '),
+      l.price,
+    ].filter(Boolean),
+    flyer: toImg(l.flyer, `${label}のフライヤー`),
+  };
+}
+
+/** そのライブが終わったか（ビルド時の判定。表示時は main.ts がもう一度判定する）。年なしは過去扱い */
+export const liveEnded = (l: Live, now = new Date()) => !l.endsAt || now.getTime() >= new Date(l.endsAt).getTime();
+
+const allLives = sheetLives.map(toLive);
+const buildTime = new Date();
+
+/** 次のライブ: まだ終わっていない（公演日の翌日 0 時より前）うち一番近いもの。なければ null（「次のライブは近日発表」） */
+export const nextLive: Live | null =
+  allLives.filter((l) => !liveEnded(l, buildTime)).sort((a, b) => a.date!.localeCompare(b.date!))[0] ?? null;
+
+/**
+ * 過去のライブ（/past-live/）。新しい順: 年が分かるものを日付の新しい順、その後に年なし（月日の新しい順）。
+ * 次のライブは日付が過ぎると、表示時にこのページの先頭にも出る（PastLive.astro）
+ */
+export const pastLives: Live[] = allLives
+  .filter((l) => liveEnded(l, buildTime))
+  .sort((a, b) => {
+    if (a.date && b.date) return b.date.localeCompare(a.date);
+    if (a.date || b.date) return a.date ? -1 : 1;
+    return b.month - a.month || b.day - a.day;
+  });
 
 export type Service = { name: string; href: string };
 export type Ep = {
@@ -117,46 +185,42 @@ export type Ep = {
   services?: Service[];
 };
 
-// 配信URLは linkco.re の各ページのストアリンク（tunecore.co.jp/to/<store>/<id>）をたどって確認したもの（PRODUCT.md）
-const services = (id: number, spotify: string, apple: string, youtube: string): Service[] => [
-  { name: 'Spotify', href: `https://open.spotify.com/album/${spotify}` },
-  { name: 'Apple Music', href: apple },
-  { name: 'YouTube Music', href: youtube },
-  { name: 'LINE MUSIC', href: `https://www.tunecore.co.jp/to/line/${id}` },
-  { name: 'Amazon Music', href: `https://www.tunecore.co.jp/to/amazon_music/${id}` },
-];
+// ジャケットが空のときはロゴで代わりにする（ヒーローの「聴く」がジャケットを必ず使うため）
+const noCover = (title: string): Img => ({ src: '/logo/logo-full', w: 1200, h: 1166, small: false, alt: `「${title}」（ジャケットなし）` });
 
-// 先頭が最新作（大きく出す）。ASS HOLE の配信リンクと EP の順番は未確認
-export const eps: Ep[] = [
-  {
-    title: "RAM'S BALL",
-    cover: img('/img/music/rams-ball', 400, 400, "EP「RAM'S BALL」のジャケット。炎に包まれた手"),
-    href: 'https://linkco.re/3CcSGHyp',
-    spotify: '6mcCk4SAouwsYp4cj9z692',
-    services: services(
-      1726936,
-      '6mcCk4SAouwsYp4cj9z692',
-      'https://music.apple.com/jp/album/rams-ball-single/6809121654',
-      'https://music.youtube.com/playlist?list=OLAK5uy_nzqhtBYsp06Ly0y6DgxTSTPmwADggNwM0',
-    ),
-  },
-  {
-    title: 'BABY TANK',
-    cover: img('/img/music/baby-tank', 400, 400, 'EP「BABY TANK」のジャケット。白地に描かれた骨の手'),
-    href: 'https://linkco.re/tM5cbf6t',
-    spotify: '7cgggJee3zl2h7IODPjS9p',
-    services: services(
-      1807275,
-      '7cgggJee3zl2h7IODPjS9p',
-      'https://music.apple.com/jp/album/baby-tank-single/6776646587',
-      'https://music.youtube.com/playlist?list=OLAK5uy_lPjwJIhKskSOvItgZ2u8nEhS-tL1s4UTE',
-    ),
-  },
-  {
-    title: 'ASS HOLE',
-    cover: img('/img/music/ass-hole', 400, 400, 'EP「ASS HOLE」のジャケット。黒地に白い筆文字の BLACK RAM ロゴと羊の頭蓋骨'),
-  },
-];
+/**
+ * 曲。先頭が最新作（LATEST、大きく出す）。
+ * 発売日の新しい順。発売日が空のものは行の上ほど新しい扱いで、発売日のあるものの後ろに置く
+ */
+export const eps: Ep[] = sheetSongs
+  .map((s, row) => ({ s, row }))
+  .sort((a, b) => {
+    if (a.s.release && b.s.release) return b.s.release.localeCompare(a.s.release) || a.row - b.row;
+    if (a.s.release || b.s.release) return a.s.release ? -1 : 1;
+    return a.row - b.row;
+  })
+  .map(({ s }) => {
+    const cover = toImg(s.cover, `${s.kind ? `${s.kind}` : ''}「${s.title}」のジャケット`) ?? noCover(s.title);
+    return {
+      title: s.title,
+      cover,
+      href: s.href || undefined,
+      spotify: s.spotify || undefined,
+      services: s.services.length ? s.services : undefined,
+    };
+  });
+
+export type GoodsItem = {
+  name: string;
+  price: string;
+  variants: string;
+  href: string;
+  soldOut: boolean;
+  photo?: Img;
+};
+
+/** グッズの商品（/goods/）。値段もリンクもない商品は名前だけ出す */
+export const goodsItems: GoodsItem[] = sheetGoods.map((g) => ({ ...g, photo: toImg(g.photo, `${g.name}の写真`) }));
 
 export type Video = { src: string; poster: string; w: number; h: number; label: string };
 
@@ -191,7 +255,10 @@ export const photos: Img[] = [
   img('/img/photo/DcHOFc4E20Q-s18', 1200, 1600, 'ライトが並ぶステージで、ギターを置いて客席に背を向けて立つメンバー'),
 ];
 
-// 物販。購入方法は未確認なので、写真だけ出す
+/** 一覧用の小さい画像（`-s.webp` がなければ元の大きさ） */
+export const thumb = (i: Img) => `${i.src}${i.small === false ? '' : '-s'}.webp`;
+
+// 物販の写真（/goods/ の演出用）。商品名・値段・買うリンクはスプレッドシート（goodsItems）
 export const goods: Img[] = [
   img('/img/goods/Db_ZAHkk-q8', 1600, 1600, '地面に置かれた黒いTシャツ。胸に白いグラフィック'),
   img('/img/goods/Db_ZAHkk-q8-s2', 1114, 1114, '黒いTシャツを着て中指を立てるメンバー'),

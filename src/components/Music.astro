@@ -45,9 +45,9 @@ const spotifyUrl = (ep: Ep) => `https://open.spotify.com/album/${ep.spotify}`;
                 <span class="sr-only">（{latest.title}。この場で Spotify のプレーヤーを開く）</span>
               </a>
             )}
-            {latest.services && (
+            {(latest.services || latest.href) && (
               <ul class="services" aria-label={`${latest.title} の配信サービス`}>
-                {latest.services.map((s) => (
+                {latest.services?.map((s) => (
                   <li>
                     <a class="ext" href={s.href} target="_blank" rel="noopener" translate="no">
                       {s.name}
@@ -103,9 +103,9 @@ const spotifyUrl = (ep: Ep) => `https://open.spotify.com/album/${ep.spotify}`;
               )}
             </div>
             {ep.spotify && <div class="compact" data-player />}
-            {ep.services && (
+            {(ep.services || ep.href) && (
               <ul class="services" aria-label={`${ep.title} の配信サービス`}>
-                {ep.services.map((s) => (
+                {ep.services?.map((s) => (
                   <li>
                     <a class="ext" href={s.href} target="_blank" rel="noopener" translate="no">
                       {s.name}

@@ -1,13 +1,16 @@
 ---
-import { nextLive, nextLiveEnded, print, srcset, windows } from '../data/site';
+import { liveEnded, nextLive, print, srcset, windows } from '../data/site';
 
-// ビルド時に終わっていれば最初から「近日発表」。表示時にも main.ts が data-ends で判定して切り替える
-const ended = nextLiveEnded();
+// 次のライブはスプレッドシートから（site.ts）。未来のライブがなければ最初から「近日発表」。
+// 表示時にも main.ts が data-ends で判定して切り替える
 const l = nextLive;
+const ended = !l || liveEnded(l);
 const pad = (n: number) => String(n).padStart(2, '0');
 // 料金の括弧書き（＋1D …）は途中で改行させない
-const [priceMain, priceRest] = l.price.split('（');
+const [priceMain, priceRest] = (l?.price ?? '').split('（');
 const priceNote = priceRest ? `（${priceRest}` : '';
+const openStart = l ? [l.open, l.start].filter(Boolean).join(' / ') : '';
+const openStartLabel = l ? [l.open && 'OPEN', l.start && 'START'].filter(Boolean).join(' / ') : '';
 ---
 
 <section class="section live" id="live" aria-labelledby="live-title">
@@ -23,61 +26,94 @@ const priceNote = priceRest ? `（${priceRest}` : '';
       NEXT LIVE
     </h2>
 
-    <article
-      class="next"
-      data-next-live
-      data-ends={l.endsAt}
-      hidden={ended}
-      aria-labelledby="next-venue"
-      data-reveal="wipe"
-    >
-      <!-- 反転面の上側に、紙に刷ったコピーのようなライブ写真を刷り込み、下へ紙の色に溶かす -->
-      <img
-        class="print"
-        src={`${print.src}-s.webp`}
-        srcset={srcset(print)}
-        sizes="100vw"
-        width={print.w}
-        height={print.h}
-        alt=""
-        loading="lazy"
-        decoding="async"
-      />
-      <p class="date">
-        <time datetime={`${l.date}T${l.start}+09:00`}>
-          <span class="md">{pad(l.month)}.{pad(l.day)}</span>
-          <span class="wd">（{l.weekday}）</span>
-        </time>
-      </p>
-      <div class="body">
-        <h3 class="where" id="next-venue">
-          <span class="area">{l.area}</span>
-          <span class="venue nowrap" translate="no">{l.venue}</span>
-        </h3>
-        <p class="event nowrap">「<span translate="no">{l.title}</span>」</p>
-        <dl class="facts">
-          <div>
-            <dt>OPEN / START</dt>
-            <dd class="num">{l.open} / {l.start}</dd>
+    {
+      l && (
+        <article
+          class="next"
+          data-next-live
+          data-ends={l.endsAt}
+          hidden={ended}
+          aria-labelledby="next-venue"
+          data-reveal="wipe"
+        >
+          <!-- 反転面の上側に、紙に刷ったコピーのようなライブ写真を刷り込み、下へ紙の色に溶かす -->
+          <img
+            class="print"
+            src={`${print.src}-s.webp`}
+            srcset={srcset(print)}
+            sizes="100vw"
+            width={print.w}
+            height={print.h}
+            alt=""
+            loading="lazy"
+            decoding="async"
+          />
+          <p class="date">
+            <time datetime={l.start ? `${l.date}T${l.start}+09:00` : l.date}>
+              <span class="md">
+                {pad(l.month)}.{pad(l.day)}
+              </span>
+              <span class="wd">（{l.weekday}）</span>
+            </time>
+          </p>
+          <div class="body">
+            <h3 class="where" id="next-venue">
+              {l.area && <span class="area">{l.area}</span>}
+              <span class="venue nowrap" translate="no">
+                {l.venue}
+              </span>
+            </h3>
+            {l.title && (
+              <p class="event nowrap">
+                「<span translate="no">{l.title}</span>」
+              </p>
+            )}
+            <dl class="facts">
+              {openStart && (
+                <div>
+                  <dt>{openStartLabel}</dt>
+                  <dd class="num">{openStart}</dd>
+                </div>
+              )}
+              {l.actTime && (
+                <div>
+                  <dt>出演時間</dt>
+                  <dd class="num">{l.actTime}</dd>
+                </div>
+              )}
+              {l.price && (
+                <div>
+                  <dt>料金</dt>
+                  <dd>
+                    {priceMain}
+                    {priceNote && <span class="nowrap">{priceNote}</span>}
+                  </dd>
+                </div>
+              )}
+              {l.acts.length > 0 && (
+                <div>
+                  <dt>出演</dt>
+                  <dd>
+                    <ul class="acts" translate="no">
+                      {l.acts.map((a) => (
+                        <li class:list={['nowrap', { self: a.toUpperCase() === 'BLACK RAM' }]}>{a}</li>
+                      ))}
+                    </ul>
+                  </dd>
+                </div>
+              )}
+            </dl>
+            {l.ticket && (
+              <p class="ticket-wrap">
+                <a class="btn ext ticket" href={l.ticket} target="_blank" rel="noopener">
+                  <span class="ja">チケット・予約</span>
+                </a>
+              </p>
+            )}
           </div>
-          <div>
-            <dt>料金</dt>
-            <dd>
-              {priceMain}
-              {priceNote && <span class="nowrap">{priceNote}</span>}
-            </dd>
-          </div>
-          <div>
-            <dt>出演</dt>
-            <dd>
-              <ul class="acts" translate="no">
-                {l.acts.map((a) => <li class="nowrap">{a}</li>)}
-              </ul>
-            </dd>
-          </div>
-        </dl>
-      </div>
-    </article>
+        </article>
+      )
+    }
 
     <p class="empty" data-next-empty hidden={!ended}>次のライブは近日発表</p>
 
@@ -226,10 +262,25 @@ const priceNote = priceRest ? `（${priceRest}` : '';
     font-weight: 700;
   }
 
-  .acts li:first-child {
+  .acts .self {
     text-decoration: underline;
     text-decoration-thickness: 2px;
     text-underline-offset: 0.25em;
+  }
+
+  /* 反転面の上のボタン: Ink の枠と文字、ホバーで Ink の面 */
+  .ticket {
+    border-color: var(--ink);
+    color: var(--ink);
+  }
+
+  .ticket:hover {
+    background: var(--ink);
+    color: var(--bone);
+  }
+
+  .ticket:focus-visible {
+    outline-color: var(--ink);
   }
 
   .empty {

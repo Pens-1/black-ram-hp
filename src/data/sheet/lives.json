@@ -1,0 +1,68 @@
+[
+  {
+    "year": 2026,
+    "month": 10,
+    "day": 20,
+    "area": "梅田",
+    "venue": "ODYSSEY",
+    "title": "VOLTAGE",
+    "open": "17:30",
+    "start": "18:00",
+    "price": "ADV/DOOR ¥2,500（＋1D ¥700）",
+    "acts": [
+      "Skade",
+      "BLACK RAM",
+      "Neo'n'eat",
+      "bloom in zero",
+      "PANdeMIX"
+    ],
+    "actTime": "",
+    "ticket": "",
+    "flyer": null
+  },
+  {
+    "year": null,
+    "month": 6,
+    "day": 22,
+    "area": "",
+    "venue": "GATTACA",
+    "title": "天変地異",
+    "open": "18:30",
+    "start": "19:00",
+    "price": "ADV ¥2400 / DOOR ¥2900",
+    "acts": [
+      "Festina Lente",
+      "hakumeii",
+      "龍之介 (Slipout Blank)",
+      "BLACK RAM"
+    ],
+    "actTime": "",
+    "ticket": "",
+    "flyer": {
+      "src": "/img/live/0622-gattaca",
+      "w": 1200,
+      "h": 1600,
+      "small": true
+    }
+  },
+  {
+    "year": null,
+    "month": 8,
+    "day": 14,
+    "area": "",
+    "venue": "KYOTO MUSE",
+    "title": "",
+    "open": "",
+    "start": "",
+    "price": "",
+    "acts": [],
+    "actTime": "",
+    "ticket": "",
+    "flyer": {
+      "src": "/img/live/0814-kyoto-muse",
+      "w": 1526,
+      "h": 1600,
+      "small": true
+    }
+  }
+]

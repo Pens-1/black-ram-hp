@@ -1,0 +1,23 @@
+[
+  {
+    "name": "Tシャツ",
+    "price": "",
+    "variants": "",
+    "href": "",
+    "soldOut": false,
+    "photo": {
+      "src": "/img/goods/Db_ZAHkk-q8",
+      "w": 1600,
+      "h": 1600,
+      "small": true
+    }
+  },
+  {
+    "name": "CD",
+    "price": "",
+    "variants": "",
+    "href": "",
+    "soldOut": false,
+    "photo": null
+  }
+]

@@ -1,32 +1,28 @@
 ---
 import Icon from './Icon.astro';
-import { lives, nextLive, nextLiveEnded, srcset, type Live } from '../data/site';
+import { liveEnded, nextLive, pastLives, srcset, type Live } from '../data/site';
 
-// 新しい順。次のライブは日付が過ぎたらここの先頭に出る（ビルド時に判定し、表示時にも main.ts が data-from で判定）
-const past = [...lives].reverse();
-const ended = nextLiveEnded();
+// 新しい順（site.ts）。次のライブは日付が過ぎたらここの先頭に出る（表示時に main.ts が data-past-from で判定）
 const pad = (n: number) => String(n).padStart(2, '0');
 const label = (l: Live) => `${l.month}月${l.day}日 ${l.venue}${l.title ? `「${l.title}」` : ''}`;
-const n = nextLive;
+const rows: { l: Live; upcoming: boolean }[] = [
+  ...(nextLive ? [{ l: nextLive, upcoming: true }] : []),
+  ...pastLives.map((l) => ({ l, upcoming: false })),
+];
 ---
 
 <section class="section" aria-label="過去のライブの一覧">
   <div class="wrap">
     <ol class="rows">
-      <li class="row" data-past-from={n.endsAt} hidden={!ended}>
-        <div class="live static">
-          <span class="date">
-            {pad(n.month)}.{pad(n.day)}
-          </span>
-          <span class="info">
-            <span class="venue nowrap" translate="no">{n.venue}</span>
-            <span class="title nowrap">{n.title}</span>
-          </span>
-        </div>
-      </li>
       {
-        past.map((l, i) => (
-          <li class="row" data-reveal style={`--i:${i}`}>
+        rows.map(({ l, upcoming }, i) => (
+          <li
+            class="row"
+            data-reveal={upcoming ? undefined : ''}
+            style={upcoming ? undefined : `--i:${i}`}
+            data-past-from={upcoming ? l.endsAt : undefined}
+            hidden={upcoming && !liveEnded(l)}
+          >
             {l.flyer ? (
               <details class="live" data-flyer>
                 <summary aria-label={`${label(l)}（押すとフライヤーを表示）`}>
@@ -53,7 +49,7 @@ const n = nextLive;
                     loading="lazy"
                     decoding="async"
                   />
-                  {l.details && (
+                  {l.details.length > 0 && (
                     <ul class="details">
                       {l.details.map((d) => (
                         <li>
