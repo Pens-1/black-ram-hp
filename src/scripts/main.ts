@@ -1,4 +1,4 @@
-// 最小限の動き: ロゴアニメーション / メニュー開閉 / ヘッダー背景 / 現在地 / 次のライブの切り替え / 埋め込みプレーヤー / 動画再生 / ストロボ / 写真の拡大 / 入ってくる動き
+// 最小限の動き: ロゴアニメーション / メニュー開閉 / ヘッダー背景 / 現在地 / 次のライブの切り替え / 埋め込みプレーヤー / 動画再生 / ストロボ / 写真の拡大 / 照明と文字の窓（スクロール連動） / 入ってくる動き
 // （フライヤーの開閉は <details> なので JS 不要）
 import { introDone, introRunning } from './intro';
 
@@ -22,6 +22,10 @@ function setMenu(open: boolean) {
   if (menuLabel) menuLabel.textContent = open ? 'メニューを閉じる' : 'メニューを開く';
   header.classList.toggle('is-open', open);
   document.body.classList.toggle('is-locked', open);
+  // 開いている間は背面へフォーカスを移させない
+  Array.from(document.body.children).forEach((el) => {
+    if (el instanceof HTMLElement && !el.contains(header) && !el.matches('script, .skip')) el.inert = open;
+  });
 }
 
 menuBtn?.addEventListener('click', () => setMenu(menuBtn.getAttribute('aria-expanded') !== 'true'));
@@ -65,6 +69,10 @@ if (nextLive && passed(nextLive.dataset.ends)) {
   const empty = document.querySelector<HTMLElement>('[data-next-empty]');
   if (empty) empty.hidden = false;
 }
+// 次のライブの帯も消す
+document.querySelectorAll<HTMLElement>('[data-tape-ends]').forEach((el) => {
+  if (passed(el.dataset.tapeEnds)) el.hidden = true;
+});
 // 過去のライブのページ: 終わった次のライブを先頭に出す
 document.querySelectorAll<HTMLElement>('[data-past-from]').forEach((el) => {
   if (passed(el.dataset.pastFrom)) el.hidden = false;
@@ -339,6 +347,86 @@ if (dialog && thumbs.length) {
     },
     { passive: true },
   );
+}
+
+/* ---------- 照明と文字の窓（スクロール連動。スクロールそのものは奪わない） ----------
+   [data-stage]: 暗い白黒の地の上を、スクロールに合わせて照明（色の出る円）が上から下へ流れる。
+                 マウスのときは、乗った位置へ照明が寄る
+   [data-window]: 文字の形に切り抜いた写真が少しずれて動く（--shift: -1〜1）。流れる帯（.tape）もこれで横に流す
+   動きを減らす設定・JSなしでは、照明は data-rest の位置、写真は中央に止まる */
+const stageEls = Array.from(document.querySelectorAll<HTMLElement>('[data-stage]')).filter(
+  (el) => !el.closest('[data-strobe]'),
+);
+const windowEls = Array.from(document.querySelectorAll<HTMLElement>('[data-window]'));
+const fine = window.matchMedia('(hover: hover) and (pointer: fine)');
+if (stageEls.length || windowEls.length) {
+  const visible = new Set<HTMLElement>();
+  const hovered = new WeakMap<HTMLElement, { x: number; y: number }>();
+  let raf = 0;
+
+  const rest = (el: HTMLElement) => {
+    const [x = '60%', y = '40%'] = (el.dataset.rest ?? '').split(' ');
+    el.style.setProperty('--lx', x);
+    el.style.setProperty('--ly', y);
+  };
+
+  const frame = () => {
+    raf = 0;
+    if (reduce.matches) return;
+    const vh = window.innerHeight;
+    // 先に位置をまとめて読み、あとでまとめて書く（読み書きを交互にしない）
+    const reads = Array.from(visible, (el) => [el, el.getBoundingClientRect()] as const);
+    reads.forEach(([el, r]) => {
+      // 要素が画面の下端に入ったとき 0、上端から抜けるとき 1
+      const p = Math.min(1, Math.max(0, (vh - r.top) / (vh + r.height)));
+      if (el.hasAttribute('data-window')) {
+        el.style.setProperty('--shift', (p * 2 - 1).toFixed(3));
+        return;
+      }
+      const h = hovered.get(el);
+      const x = h ? h.x : 50 + Math.sin(p * Math.PI * 2) * 28;
+      const y = h ? h.y : 8 + p * 84;
+      el.style.setProperty('--lx', `${x.toFixed(1)}%`);
+      el.style.setProperty('--ly', `${y.toFixed(1)}%`);
+    });
+  };
+  const request = () => {
+    if (!raf && visible.size) raf = requestAnimationFrame(frame);
+  };
+
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach((e) => {
+      const el = e.target as HTMLElement;
+      if (e.isIntersecting) visible.add(el);
+      else visible.delete(el);
+    });
+    request();
+  });
+  [...stageEls, ...windowEls].forEach((el) => io.observe(el));
+  window.addEventListener('scroll', request, { passive: true });
+  window.addEventListener('resize', request, { passive: true });
+
+  stageEls.forEach((el) => {
+    el.addEventListener('pointermove', (e) => {
+      if (!fine.matches || reduce.matches) return;
+      const r = el.getBoundingClientRect();
+      hovered.set(el, { x: ((e.clientX - r.left) / r.width) * 100, y: ((e.clientY - r.top) / r.height) * 100 });
+      request();
+    });
+    el.addEventListener('pointerleave', () => {
+      hovered.delete(el);
+      request();
+    });
+  });
+
+  const syncLight = () => {
+    if (reduce.matches) {
+      stageEls.forEach(rest);
+      windowEls.forEach((el) => el.style.setProperty('--shift', '0'));
+    } else request();
+  };
+  syncLight();
+  reduce.addEventListener('change', syncLight);
 }
 
 /* ---------- 入ってくる動き ---------- */

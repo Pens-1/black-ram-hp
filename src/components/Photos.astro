@@ -11,12 +11,11 @@ const shape = (w: number, h: number) => (w > h * 1.1 ? 'land' : h > w * 1.1 ? 'p
 ---
 
 <section class="photo-section" aria-label="写真の一覧">
-
   <div class="gallery-wrap">
     <ul class="gallery" data-gallery>
       {
         photos.map((p, i) => (
-          <li class:list={['cell', shape(p.w, p.h), { wide: wide.has(i) }]}>
+          <li class:list={['cell', shape(p.w, p.h), { wide: wide.has(i) }]} data-reveal="wipe" style={`--i:${i % 4}`}>
             <button
               type="button"
               class="thumb grain"

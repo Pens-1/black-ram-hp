@@ -47,6 +47,61 @@ const { title, photo, focus = '50% 50%' } = Astro.props;
     filter: contrast(1.1) brightness(0.8);
   }
 
+  /* スクロールで写真がゆっくり寄って沈む（スクロール量に連動するだけ） */
+  @supports (animation-timeline: scroll()) {
+    @media (prefers-reduced-motion: no-preference) {
+      .page-head img {
+        animation: head-zoom linear both;
+        animation-timeline: scroll(root);
+        animation-range: 0 80dvh;
+      }
+    }
+  }
+
+  @keyframes head-zoom {
+    to {
+      transform: scale(1.12) translateY(5%);
+      filter: contrast(1.1) brightness(0.55);
+    }
+  }
+
+  /* 見出しは開いたときに一度だけ RGB がずれてから合う（閃光なし） */
+  @media (prefers-reduced-motion: no-preference) {
+    .page-title {
+      animation: title-in 720ms steps(1) both;
+    }
+  }
+
+  @keyframes title-in {
+    0% {
+      opacity: 0;
+    }
+    12% {
+      opacity: 1;
+      transform: translateX(-4%) skewX(-6deg);
+      text-shadow:
+        -0.06em 0 rgb(255 0 60 / 0.8),
+        0.06em 0 rgb(0 120 255 / 0.8);
+    }
+    30% {
+      transform: translateX(3%);
+      text-shadow:
+        0.04em 0 rgb(255 0 60 / 0.7),
+        -0.04em 0 rgb(0 120 255 / 0.7);
+    }
+    52% {
+      transform: translateX(-1%) scaleX(1.04);
+      text-shadow:
+        -0.02em 0 rgb(255 0 60 / 0.6),
+        0.02em 0 rgb(0 120 255 / 0.6);
+    }
+    70%,
+    100% {
+      transform: none;
+      text-shadow: none;
+    }
+  }
+
   .head-inner {
     position: relative;
     padding-block: 0 24px;

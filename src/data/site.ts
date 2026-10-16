@@ -62,9 +62,6 @@ export const nextLive = {
 /** 次のライブが終わったか（ビルド時の判定。表示時は main.ts がもう一度判定する） */
 export const nextLiveEnded = (now = new Date()) => now.getTime() >= new Date(nextLive.endsAt).getTime();
 
-/** 告知。内容が未確認なので空。0件ならセクションごと出さない */
-export const news: { date: string; text: string; href?: string }[] = [];
-
 export type Live = {
   /** 月/日。年は未確認なので持たない */
   month: number;
@@ -229,7 +226,22 @@ const pick = (list: Img[], src: string): Img => {
 export const stages = {
   // ファーストビュー（PC）の地: KYOTO MUSE の緑の照明
   hero: { dark: '/img/stage/live-s9', lit: pick(photos, '/img/photo/DcHOFc4E20Q-s9') },
+  // ヒーローより下: スクロールに合わせて照明が流れ、当たった所だけ色が出る（main.ts「照明」）
+  music: { dark: '/img/stage/live-s7', lit: pick(photos, '/img/photo/DcHOFc4E20Q-s7') },
+  sns: { dark: '/img/stage/live-s13', lit: pick(photos, '/img/photo/DcHOFc4E20Q-s13') },
+  video: { dark: '/img/stage/live-s17', lit: pick(photos, '/img/photo/DcHOFc4E20Q-s17') },
+  goods: { dark: '/img/stage/goods', lit: pick(goods, '/img/goods/Db_ZAHkk-q8') },
+  profile: { dark: '/img/stage/profile', lit: pick(profile.sub, '/img/profile/DXPX72-kd3w-s1') },
 } satisfies Record<string, Stage>;
+
+/** NEXT LIVE の反転面（Bone）に刷り込む、紙に刷ったコピーの写真（make-stage.py の PRINTS） */
+export const print = { ...pick(photos, '/img/photo/Dc3l2V7MfRr'), src: '/img/stage/print-drum', alt: '' };
+
+/** 文字の窓（巨大な文字・ロゴの形で切り抜く）に入れるカラー写真 */
+export const windows = {
+  live: pick(photos, '/img/photo/DcHOFc4E20Q-s6'),
+  footer: pick(photos, '/img/photo/DcHOFc4E20Q-s9'),
+};
 
 export const meta = {
   title: 'BLACK RAM',

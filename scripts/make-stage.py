@@ -6,6 +6,7 @@
   4. 粒子（ガウスノイズ）を足す
   5. Ink #0d0c0b → Bone #ece8df の2色に置き換える（冷たいグレーを出さない）
 出力: public/img/stage/<name>.webp（長辺 1600）と <name>-s.webp（長辺 800）
+PRINTS は逆に、Bone の紙に Ink で刷ったコピー（網点を強め、暗く沈めない）。NEXT LIVE の反転面に刷り込む
 使い方: python3 -I scripts/make-stage.py .
 """
 import sys
@@ -24,10 +25,18 @@ BONE = np.array([0xEC, 0xE8, 0xDF], dtype=np.float32)
 # 出力名: 元ファイル
 SOURCES = {
     "live-s9": "assets/instagram/ig-DcHOFc4E20Q-s9.jpg",
+    "live-s7": "assets/instagram/ig-DcHOFc4E20Q-s7.jpg",
+    "live-s13": "assets/instagram/ig-DcHOFc4E20Q-s13.jpg",
+    "live-s17": "assets/instagram/ig-DcHOFc4E20Q-s17.jpg",
+    "goods": "assets/instagram/ig-Db_ZAHkk-q8.jpg",
+    "profile": "assets/instagram/ig-DXPX72-kd3w-s1.jpg",
+}
+PRINTS = {
+    "print-drum": "assets/instagram/ig-Dc3l2V7MfRr.jpg",
 }
 
 
-def stage(src: Image.Image, long_edge: int, seed: int) -> Image.Image:
+def stage(src: Image.Image, long_edge: int, seed: int, paper: bool = False) -> Image.Image:
     im = src.convert("L")
     scale = min(1.0, long_edge / max(im.size))
     if scale < 1:
@@ -44,17 +53,24 @@ def stage(src: Image.Image, long_edge: int, seed: int) -> Image.Image:
     t = (np.cos(2 * np.pi * u / cell) + np.cos(2 * np.pi * v / cell) + 2) / 4
     dots = (g > t).astype(np.float32)
 
+    rng = np.random.default_rng(seed)
+    if paper:
+        # 紙に刷ったコピー: 網点を多めに、明るいところは紙のまま
+        m = 0.3 * g + 0.7 * dots
+        m = np.clip(m + rng.normal(0, 0.05, m.shape), 0, 1)
+        rgb = INK + (BONE - INK) * m[..., None]
+        return Image.fromarray(np.clip(rgb, 0, 255).astype(np.uint8), "RGB")
     m = 0.55 * g + 0.45 * dots
     m = np.power(m, 1.6) * 0.5
-    rng = np.random.default_rng(seed)
     m = np.clip(m + rng.normal(0, 0.035, m.shape), 0, 1)
 
     rgb = INK + (BONE - INK) * m[..., None]
     return Image.fromarray(np.clip(rgb, 0, 255).astype(np.uint8), "RGB")
 
 
-for i, (name, path) in enumerate(SOURCES.items()):
+jobs = [(n, p, False) for n, p in SOURCES.items()] + [(n, p, True) for n, p in PRINTS.items()]
+for i, (name, path, paper) in enumerate(jobs):
     src = Image.open(root / path)
-    stage(src, 1600, i).save(out / f"{name}.webp", quality=62, method=6)
-    stage(src, 800, i).save(out / f"{name}-s.webp", quality=60, method=6)
+    stage(src, 1600, i, paper).save(out / f"{name}.webp", quality=62, method=6)
+    stage(src, 800, i, paper).save(out / f"{name}-s.webp", quality=60, method=6)
     print(name, Image.open(out / f"{name}.webp").size)

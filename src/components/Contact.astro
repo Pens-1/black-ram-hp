@@ -1,9 +1,12 @@
 ---
 import Icon from './Icon.astro';
-import { social, links } from '../data/site';
+import Stage from './Stage.astro';
+import { social, links, stages } from '../data/site';
 ---
 
-<section class="section" id="sns" aria-labelledby="sns-title">
+<section class="section sns" id="sns" aria-labelledby="sns-title">
+  <!-- 見出しの後ろに、緑の照明のドラムの写真を帯で敷く（照明はスクロールで流れる） -->
+  <Stage stage={stages.sns} sizes="100vw" rest="30% 50%" class="sns-ground" decorative />
   <div class="wrap layout">
     <h2 class="section-title" id="sns-title" data-reveal>SNS</h2>
     <ul class="links">
@@ -34,6 +37,28 @@ import { social, links } from '../data/site';
 </section>
 
 <style>
+  .sns {
+    position: relative;
+    isolation: isolate;
+  }
+
+  .sns :global(.sns-ground) {
+    position: absolute;
+    z-index: -1;
+    inset: 0 0 auto;
+    height: clamp(220px, 60vw, 420px);
+    -webkit-mask-image: linear-gradient(to bottom, #000 0 35%, transparent 100%);
+    mask-image: linear-gradient(to bottom, #000 0 35%, transparent 100%);
+  }
+
+  .sns .wrap {
+    position: relative;
+  }
+
+  .sns .section-title {
+    padding-top: clamp(48px, 18vw, 160px);
+  }
+
   .links {
     border-bottom: 1px solid var(--line);
   }

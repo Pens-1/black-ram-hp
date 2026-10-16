@@ -1,9 +1,12 @@
 ---
 import Icon from './Icon.astro';
-import { videos } from '../data/site';
+import Stage from './Stage.astro';
+import { stages, videos } from '../data/site';
 ---
 
 <section class="videos" aria-label="動画">
+  <!-- 地: 紫の照明のステージ全体を暗い白黒で敷き、照明がスクロールで流れる。縦動画はその上に段違いで重ねる -->
+  <Stage stage={stages.video} sizes="100vw" rest="50% 40%" class="video-ground" decorative />
   <ul class="reels" aria-label="動画の一覧">
     {
       videos.map((v, i) => (
@@ -31,10 +34,21 @@ import { videos } from '../data/site';
 
 <style>
   .videos {
+    position: relative;
+    isolation: isolate;
     padding-block: 48px 96px;
   }
 
+  .videos :global(.video-ground) {
+    position: absolute;
+    z-index: -1;
+    inset: 0;
+    -webkit-mask-image: linear-gradient(to bottom, transparent, #000 18% 70%, transparent);
+    mask-image: linear-gradient(to bottom, transparent, #000 18% 70%, transparent);
+  }
+
   .reels {
+    position: relative;
     display: grid;
     grid-auto-flow: column;
     grid-auto-columns: 72vw;

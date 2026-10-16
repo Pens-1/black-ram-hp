@@ -1,111 +1,155 @@
 ---
-import { goods, srcset } from '../data/site';
+// グッズ（Tシャツ）。購入方法は未確認なので写真だけ。
+// 1枚目は暗い白黒に刷った地（照明が当たった所だけ色が出る）として断ち切りで敷き、残りは段違いに重ねる
+import Stage from './Stage.astro';
+import { goods, srcset, stages } from '../data/site';
 
 interface Props {
   /** ページの見出しの地に使った写真（重ねて出さない） */
   exclude?: string;
 }
-const [main, ...rest] = goods.filter((g) => g.src !== Astro.props.exclude);
+const rest = goods.filter((g) => g.src !== Astro.props.exclude && g.src !== stages.goods.lit.src);
 ---
 
 <section class="goods" aria-label="グッズの写真">
-  <div class="wrap layout">
+  <div class="main" data-reveal="wipe">
+    <Stage stage={stages.goods} sizes="(min-width: 768px) 70vw, 100vw" rest="50% 45%" class="main-stage" />
+  </div>
+  <ul class="pile">
     {
-      main && (
-        <figure class="main grain" data-reveal>
+      rest.map((g, i) => (
+        <li class:list={['shot grain rgb-hover', `shot-${i}`]} data-reveal="wipe" style={`--i:${i % 2}`}>
           <img
-            src={`${main.src}.webp`}
-            srcset={srcset(main)}
-            sizes="(min-width: 768px) 58vw, 100vw"
-            width={main.w}
-            height={main.h}
-            alt={main.alt}
+            src={`${g.src}-s.webp`}
+            srcset={srcset(g)}
+            sizes="(min-width: 768px) 40vw, 75vw"
+            width={g.w}
+            height={g.h}
+            alt={g.alt}
             loading="lazy"
             decoding="async"
           />
-        </figure>
-      )
+        </li>
+      ))
     }
-    <ul class="rest">
-      {
-        rest.map((g, i) => (
-          <li class="grain" data-reveal style={`--i:${i + 1}`}>
-            <img
-              src={`${g.src}-s.webp`}
-              srcset={srcset(g)}
-              sizes="(min-width: 768px) 20vw, 50vw"
-              width={g.w}
-              height={g.h}
-              alt={g.alt}
-              loading="lazy"
-              decoding="async"
-            />
-          </li>
-        ))
-      }
-    </ul>
-  </div>
+  </ul>
 </section>
 
 <style>
   .goods {
-    padding-block: 24px 96px;
+    padding-block: 0 96px;
+    max-width: var(--max);
+    margin-inline: auto;
   }
 
-  .layout {
+  .main :global(.main-stage) {
+    aspect-ratio: 1;
+  }
+
+  /* 段違いに重ねる。枠・影は付けず、重なりの順だけで前後を出す */
+  .pile {
     display: grid;
-    gap: 4px;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    align-items: start;
+    margin-top: -18vw;
+    position: relative;
   }
 
-  .head {
-    margin-bottom: 28px;
-  }
-
-  .main {
-    margin-inline: calc(var(--gutter) * -1);
-  }
-
-  .main img,
-  .rest img {
+  .shot img {
     width: 100%;
     aspect-ratio: 1;
     object-fit: cover;
   }
 
-  .rest {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 4px;
-    margin-inline: calc(var(--gutter) * -1);
+  .shot-0 {
+    grid-column: 1 / span 8;
+    grid-row: 1;
   }
 
-  .rest li:first-child {
-    grid-column: span 2;
+  .shot-1 {
+    grid-column: 7 / -1;
+    grid-row: 1;
+    margin-top: 36vw;
   }
 
-  .rest li:first-child img {
-    aspect-ratio: 2 / 1;
+  .shot-2 {
+    grid-column: 2 / span 7;
+    grid-row: 2;
+    margin-top: -14vw;
+  }
+
+  .shot-3 {
+    grid-column: 8 / -1;
+    grid-row: 2;
+    margin-top: 30vw;
+  }
+
+  .shot-1,
+  .shot-3 {
+    z-index: 1;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .shot img {
+      transition: transform 300ms var(--ease);
+    }
   }
 
   @media (min-width: 768px) {
-    .layout {
+    .goods {
+      display: grid;
       grid-template-columns: repeat(12, minmax(0, 1fr));
       align-items: start;
-      gap: 4px;
+      padding-inline: var(--gutter);
     }
 
-    .head {
-      grid-column: 1 / -1;
-      margin-bottom: 44px;
-    }
-
+    /* PC: 地の1枚は画面に留め、右の写真だけが流れて重なっていく */
     .main {
       grid-column: 1 / span 7;
+      grid-row: 1;
+      margin-left: calc(var(--gutter) * -1);
+      position: sticky;
+      top: var(--header-h);
     }
 
-    .rest {
-      grid-column: 8 / -1;
-      margin-inline: 0 calc(var(--gutter) * -1);
+    .pile {
+      grid-column: 7 / -1;
+      grid-row: 1;
+      margin: 96px calc(var(--gutter) * -1) 0 0;
+    }
+
+    .shot-1 {
+      margin-top: 22vw;
+    }
+
+    .shot-2 {
+      margin-top: -8vw;
+    }
+
+    .shot-3 {
+      margin-top: 18vw;
+    }
+  }
+
+  @media (min-width: 1200px) {
+    .goods {
+      padding-inline: var(--gutter);
+    }
+
+    .pile {
+      margin-top: 128px;
+    }
+
+    .shot-1 {
+      margin-top: 260px;
+    }
+
+    .shot-2 {
+      margin-top: -96px;
+    }
+
+    .shot-3 {
+      margin-top: 220px;
     }
   }
 </style>

@@ -10,15 +10,23 @@ interface Props {
   class?: string;
   /** ファーストビューに置くときは true（遅延読み込みしない） */
   eager?: boolean;
+  /** 飾りの地として敷くときは true（読み上げない） */
+  decorative?: boolean;
 }
-const { stage, sizes, rest = '60% 40%', class: cls, eager = false } = Astro.props;
+const { stage, sizes, rest = '60% 40%', class: cls, eager = false, decorative = false } = Astro.props;
 const loading = eager ? 'eager' : 'lazy';
 const { lit } = stage;
 const dark = { ...lit, src: stage.dark };
 const [lx, ly] = rest.split(' ');
 ---
 
-<div class:list={['stage', cls]} data-stage data-rest={rest} style={`--lx:${lx};--ly:${ly}`}>
+<div
+  class:list={['stage', cls]}
+  data-stage
+  data-rest={rest}
+  style={`--lx:${lx};--ly:${ly}`}
+  aria-hidden={decorative ? 'true' : undefined}
+>
   <img
     class="stage-dark"
     src={`${dark.src}-s.webp`}
@@ -37,7 +45,7 @@ const [lx, ly] = rest.split(' ');
     sizes={sizes}
     width={lit.w}
     height={lit.h}
-    alt={lit.alt}
+    alt={decorative ? '' : lit.alt}
     loading={loading}
     decoding="async"
   />

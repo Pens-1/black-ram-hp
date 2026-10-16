@@ -1,17 +1,48 @@
 ---
-import { nextLive, nextLiveEnded } from '../data/site';
+import { nextLive, nextLiveEnded, print, srcset, windows } from '../data/site';
 
 // ビルド時に終わっていれば最初から「近日発表」。表示時にも main.ts が data-ends で判定して切り替える
 const ended = nextLiveEnded();
 const l = nextLive;
 const pad = (n: number) => String(n).padStart(2, '0');
+// 料金の括弧書き（＋1D …）は途中で改行させない
+const [priceMain, priceRest] = l.price.split('（');
+const priceNote = priceRest ? `（${priceRest}` : '';
 ---
 
 <section class="section live" id="live" aria-labelledby="live-title">
   <div class="wrap">
-    <h2 class="section-title" id="live-title" data-reveal>NEXT LIVE</h2>
+    <!-- 見出しは文字の窓: KYOTO MUSE の緑の照明の写真を文字の形で切り抜く（スクロールで少しずれる） -->
+    <h2
+      class="section-title live-title window-text"
+      id="live-title"
+      data-reveal
+      data-window
+      style={`--window:url("${windows.live.src}-s.webp")`}
+    >
+      NEXT LIVE
+    </h2>
 
-    <article class="next" data-next-live data-ends={l.endsAt} hidden={ended} aria-labelledby="next-venue" data-reveal>
+    <article
+      class="next"
+      data-next-live
+      data-ends={l.endsAt}
+      hidden={ended}
+      aria-labelledby="next-venue"
+      data-reveal="wipe"
+    >
+      <!-- 反転面の上側に、紙に刷ったコピーのようなライブ写真を刷り込み、下へ紙の色に溶かす -->
+      <img
+        class="print"
+        src={`${print.src}-s.webp`}
+        srcset={srcset(print)}
+        sizes="100vw"
+        width={print.w}
+        height={print.h}
+        alt=""
+        loading="lazy"
+        decoding="async"
+      />
       <p class="date">
         <time datetime={`${l.date}T${l.start}+09:00`}>
           <span class="md">{pad(l.month)}.{pad(l.day)}</span>
@@ -31,7 +62,10 @@ const pad = (n: number) => String(n).padStart(2, '0');
           </div>
           <div>
             <dt>料金</dt>
-            <dd>{l.price}</dd>
+            <dd>
+              {priceMain}
+              {priceNote && <span class="nowrap">{priceNote}</span>}
+            </dd>
           </div>
           <div>
             <dt>出演</dt>
@@ -54,13 +88,38 @@ const pad = (n: number) => String(n).padStart(2, '0');
 </section>
 
 <style>
+  .live-title {
+    padding-bottom: 0.04em;
+  }
+
   .next {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
     display: grid;
     gap: 24px;
     margin-inline: calc(var(--gutter) * -1);
     padding: 32px var(--gutter) 40px;
     background: var(--bone);
     color: var(--ink);
+  }
+
+  .print {
+    position: absolute;
+    z-index: -1;
+    inset: 0 0 auto;
+    width: 100%;
+    height: clamp(180px, 56vw, 300px);
+    object-fit: cover;
+    object-position: 50% 40%;
+    mix-blend-mode: multiply;
+    -webkit-mask-image: linear-gradient(to bottom, #000 0 30%, transparent 100%);
+    mask-image: linear-gradient(to bottom, #000 0 30%, transparent 100%);
+  }
+
+  /* 日付は写真の溶けたところへ下ろして重ねる */
+  .date {
+    padding-top: clamp(96px, 34vw, 170px);
   }
 
   .next[hidden],
@@ -206,11 +265,20 @@ const pad = (n: number) => String(n).padStart(2, '0');
 
   /* PC: 日付を左、情報を右 */
   @media (min-width: 1200px) {
+    .print {
+      height: 300px;
+    }
+
+    /* PC: 日付と情報を写真の溶けきるあたりから始める（情報の文字を網点に重ねない） */
+    .date {
+      padding-top: 0;
+    }
+
     .next {
       grid-template-columns: auto minmax(0, 1fr);
       gap: 64px;
       align-items: end;
-      padding: 56px var(--gutter) 56px;
+      padding: 240px var(--gutter) 56px;
     }
 
     .md {

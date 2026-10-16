@@ -1,6 +1,7 @@
 ---
 import Icon from './Icon.astro';
-import { eps, links, type Ep } from '../data/site';
+import Stage from './Stage.astro';
+import { eps, links, stages, type Ep } from '../data/site';
 const [latest, ...others] = eps;
 
 // 埋め込みは押してから読み込む（main.ts「埋め込みプレーヤー」）。JSなしではボタンが Spotify へのリンクになる
@@ -8,13 +9,15 @@ const spotifyUrl = (ep: Ep) => `https://open.spotify.com/album/${ep.spotify}`;
 ---
 
 <section class="section music" id="music" aria-labelledby="music-title">
+  <!-- 地: 暗い白黒のライブ写真。スクロールに合わせて照明が流れ、当たった所だけ紫の照明の色が出る -->
+  <Stage stage={stages.music} sizes="(min-width: 768px) 62vw, 100vw" rest="62% 34%" class="music-ground" decorative />
   <div class="wrap">
     <h2 class="section-title" id="music-title" data-reveal>MUSIC</h2>
 
     {
       latest && (
         <article class="ep ep-latest" id="ep-latest" data-ep data-reveal>
-          <div class="cover" data-player>
+          <div class="cover rgb-hover" data-player>
             <img
               src={`${latest.cover.src}.webp`}
               width={latest.cover.w}
@@ -69,7 +72,7 @@ const spotifyUrl = (ep: Ep) => `https://open.spotify.com/album/${ep.spotify}`;
       {
         others.map((ep, i) => (
           <article class="ep ep-small" data-ep data-reveal style={`--i:${i + 1}`}>
-            <div class="cover">
+            <div class="cover rgb-hover">
               <img
                 src={`${ep.cover.src}.webp`}
                 width={ep.cover.w}
@@ -130,9 +133,25 @@ const spotifyUrl = (ep: Ep) => `https://open.spotify.com/album/${ep.spotify}`;
 </section>
 
 <style>
+  .music {
+    position: relative;
+    isolation: isolate;
+  }
+
   .music .wrap {
+    position: relative;
     display: grid;
     gap: 48px 24px;
+  }
+
+  /* 地の写真: 見出しと最新作の後ろに敷き、下へ溶かす（文字の載る下側は Ink のまま） */
+  .music :global(.music-ground) {
+    position: absolute;
+    z-index: -1;
+    inset: 0 0 auto;
+    height: min(150vw, 980px);
+    -webkit-mask-image: linear-gradient(to bottom, #000 0 45%, transparent 92%);
+    mask-image: linear-gradient(to bottom, #000 0 45%, transparent 92%);
   }
 
   .music .section-title {
@@ -268,8 +287,9 @@ const spotifyUrl = (ep: Ep) => `https://open.spotify.com/album/${ep.spotify}`;
     color: var(--bone);
   }
 
+  /* スマホ: ジャケットは右へ断ち切り、左に地の写真をのぞかせて重ねる */
   .ep-latest .cover {
-    margin-inline: calc(var(--gutter) * -1);
+    margin-inline: 14vw calc(var(--gutter) * -1);
   }
 
   /* スマホ: 他の EP は小さいジャケットの横に名前とボタン */
@@ -302,6 +322,19 @@ const spotifyUrl = (ep: Ep) => `https://open.spotify.com/album/${ep.spotify}`;
   }
 
   @media (min-width: 768px) {
+    /* PC: ジャケットの後ろ（左）に敷き、情報の載る右へ溶かす */
+    .music :global(.music-ground) {
+      inset: 0 auto auto 0;
+      width: 62%;
+      height: min(72vw, 940px);
+      -webkit-mask-image: linear-gradient(to right, #000 0 40%, transparent 100%),
+        linear-gradient(to bottom, #000 0 55%, transparent 100%);
+      -webkit-mask-composite: source-in;
+      mask-image: linear-gradient(to right, #000 0 40%, transparent 100%),
+        linear-gradient(to bottom, #000 0 55%, transparent 100%);
+      mask-composite: intersect;
+    }
+
     .music .wrap {
       grid-template-columns: repeat(12, minmax(0, 1fr));
     }

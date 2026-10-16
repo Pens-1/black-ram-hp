@@ -1,6 +1,10 @@
 ---
-import { profile, srcset, type Img } from '../data/site';
-const [tall, ...wides] = profile.sub;
+// プロフィール。メンバー名・パート・紹介文は未確認なので空（入ったら文字を出す）。
+// 縦の1枚を暗い白黒に刷った地（照明が当たった所だけ色が出る）として右へ断ち切りで敷き、
+// アー写（カラー）をその上へ左から重ね、残りの2枚は段違いに置く
+import Stage from './Stage.astro';
+import { profile, srcset, stages, type Img } from '../data/site';
+const wides = profile.sub.filter((s) => s.src !== stages.profile.lit.src);
 
 const pic = (i: Img, sizes: string) => ({
   src: `${i.src}.webp`,
@@ -16,9 +20,12 @@ const pic = (i: Img, sizes: string) => ({
 
 <section class="profile" aria-label="プロフィール">
   <div class="wrap layout">
+    <div class="tall" data-reveal="wipe">
+      <Stage stage={stages.profile} sizes="(min-width: 768px) 55vw, 85vw" rest="50% 30%" class="tall-stage" />
+    </div>
 
-    <figure class="artist grain" data-reveal>
-      <img {...pic(profile.main, '(min-width: 768px) 40vw, 100vw')} />
+    <figure class="artist grain" data-reveal style="--i:1">
+      <img {...pic(profile.main, '(min-width: 768px) 36vw, 70vw')} />
     </figure>
 
     {
@@ -39,16 +46,9 @@ const pic = (i: Img, sizes: string) => ({
     }
 
     {
-      tall && (
-        <figure class="tall grain" data-reveal style="--i:1">
-          <img {...pic(tall, '(min-width: 768px) 50vw, 100vw')} />
-        </figure>
-      )
-    }
-    {
       wides.map((w, i) => (
-        <figure class:list={['wide grain', `wide-${i}`]} data-reveal style={`--i:${i + 2}`}>
-          <img {...pic(w, '(min-width: 768px) 45vw, 100vw')} />
+        <figure class:list={['wide grain rgb-hover', `wide-${i}`]} data-reveal="wipe" style={`--i:${i}`}>
+          <img {...pic(w, '(min-width: 768px) 45vw, 80vw')} />
         </figure>
       ))
     }
@@ -57,37 +57,13 @@ const pic = (i: Img, sizes: string) => ({
 
 <style>
   .profile {
-    padding-block: 48px 96px;
+    padding-block: 0 96px;
   }
 
   .layout {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 4px;
-  }
-
-  .head,
-  .artist,
-  .tall,
-  .text {
-    grid-column: 1 / -1;
-  }
-
-  .head {
-    margin-bottom: 28px;
-  }
-
-  .artist,
-  .tall {
-    margin-inline: calc(var(--gutter) * -1);
-  }
-
-  .wide-0 {
-    margin-left: calc(var(--gutter) * -1);
-  }
-
-  .wide-1 {
-    margin-right: calc(var(--gutter) * -1);
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    align-items: start;
   }
 
   figure img {
@@ -96,55 +72,76 @@ const pic = (i: Img, sizes: string) => ({
     object-fit: cover;
   }
 
-  .wide img {
-    aspect-ratio: 4 / 3;
+  /* スマホ: 縦の地を右へ断ち切り、アー写を左下に重ねる */
+  .tall {
+    grid-column: 3 / -1;
+    grid-row: 1;
+    margin-right: calc(var(--gutter) * -1);
+  }
+
+  .tall :global(.tall-stage) {
+    aspect-ratio: 3 / 4;
+  }
+
+  .artist {
+    grid-column: 1 / span 8;
+    grid-row: 2;
+    margin: -32vw 0 0 calc(var(--gutter) * -1);
+    z-index: 1;
   }
 
   .text {
-    padding-block: 24px;
+    grid-column: 1 / -1;
+    padding-block: 32px;
     max-width: 36em;
     text-wrap: pretty;
   }
 
-  @media (min-width: 768px) {
-    .layout {
-      grid-template-columns: repeat(12, minmax(0, 1fr));
-      gap: 4px;
-    }
+  .wide img {
+    aspect-ratio: 4 / 3;
+  }
 
-    .head {
-      margin-bottom: 44px;
+  .wide-0 {
+    grid-column: 4 / -1;
+    margin: 48px calc(var(--gutter) * -1) 0 0;
+  }
+
+  .wide-1 {
+    grid-column: 1 / span 10;
+    margin: -10vw 0 0 calc(var(--gutter) * -1);
+    z-index: 1;
+  }
+
+  @media (min-width: 768px) {
+    .tall {
+      grid-column: 6 / -1;
+      grid-row: 1 / span 2;
     }
 
     .artist {
-      grid-column: 1 / span 5;
+      grid-column: 1 / span 6;
       grid-row: 2;
-      margin: 0;
       align-self: end;
-      margin-bottom: 96px;
+      margin: 0 0 -64px calc(var(--gutter) * -1);
     }
 
     .text {
       grid-column: 1 / span 5;
-      grid-row: 3;
-    }
-
-    .tall {
-      grid-column: 7 / -1;
-      grid-row: 2 / span 2;
-      margin: 0 calc(var(--gutter) * -1) 0 0;
+      grid-row: 1;
+      align-self: end;
     }
 
     .wide-0 {
       grid-column: 1 / span 6;
-      grid-row: 4;
-      margin: 0 0 0 calc(var(--gutter) * -1);
+      grid-row: 3;
+      margin: 160px 0 0 calc(var(--gutter) * -1);
     }
 
     .wide-1 {
-      grid-column: 7 / -1;
-      grid-row: 4;
-      margin: 0 calc(var(--gutter) * -1) 0 0;
+      grid-column: 6 / -1;
+      grid-row: 3;
+      margin: 260px calc(var(--gutter) * -1) 0 0;
+      z-index: 0;
     }
   }
 </style>

@@ -446,3 +446,135 @@ ol {
 .lamp[data-stage] {
   transition: none;
 }
+
+/* ==========================================================================
+   ヒーローより下の動き
+   ========================================================================== */
+
+/* ---------- 入ってくる動き（JSあり・動きを減らす設定なしのときだけ隠しておく） ----------
+   data-reveal="wipe" は写真向け: 下から刷り上がるように clip-path で開く */
+@media (prefers-reduced-motion: no-preference) {
+  html.js [data-reveal] {
+    transition:
+      opacity 520ms var(--ease),
+      transform 620ms var(--ease),
+      clip-path 760ms var(--ease);
+    transition-delay: calc(var(--i, 0) * 70ms);
+  }
+
+  html.js [data-reveal]:not(.is-in) {
+    opacity: 0;
+    transform: translateY(28px);
+  }
+
+  html.js [data-reveal='wipe']:not(.is-in) {
+    opacity: 1;
+    transform: none;
+    clip-path: inset(0 0 100% 0);
+  }
+
+  html.js [data-reveal='wipe'].is-in {
+    clip-path: inset(0);
+  }
+}
+
+/* ---------- 地の写真に流れる照明（main.ts「照明」が --lx / --ly を動かす） ---------- */
+.stage[data-stage] {
+  --r: clamp(180px, 62vmin, 560px);
+}
+
+/* ---------- 文字の窓: 巨大な文字の形でカラー写真を切り抜く ----------
+   写真はスクロールに合わせて少しずれる（--shift は main.ts が -1〜1 で入れる）。
+   background-clip: text に対応しないブラウザでは Bone の文字のまま */
+@supports ((-webkit-background-clip: text) or (background-clip: text)) {
+  .window-text {
+    --shift: 0;
+    color: transparent;
+    /* 写真を Ash の面に screen で重ね、暗い所も文字として読める明るさに持ち上げる（Ink の地とのコントラスト比 4.5 以上） */
+    background-image: var(--window), linear-gradient(var(--window-floor, #8c877d), var(--window-floor, #8c877d));
+    background-blend-mode: screen;
+    background-size: cover;
+    background-position: 50% calc(50% + var(--shift) * 30%);
+    -webkit-background-clip: text;
+    background-clip: text;
+  }
+}
+
+/* ---------- 流れる帯（養生テープ風）。スクロールに合わせて横に流れる ----------
+   自動では動かさない（止める操作がいらない）。--shift は main.ts が -1〜1 で入れる */
+.tape {
+  --tilt: -2deg;
+  position: relative;
+  z-index: 1;
+  display: block;
+  margin-block: -20px;
+  overflow: hidden;
+  background: var(--bone);
+  color: var(--ink);
+  text-decoration: none;
+  transform: rotate(var(--tilt));
+  /* 端を少し外へ出して、傾けても切れ目が見えないように */
+  margin-inline: -24px;
+}
+
+.tape-track {
+  display: flex;
+  width: max-content;
+  transform: translateX(calc((var(--shift, 0) + 1) * -18%));
+}
+
+.tape:hover {
+  background: #d9d4ca;
+}
+
+.tape-item {
+  display: flex;
+  align-items: center;
+  gap: 0.6em;
+  padding: 12px 0.6em 10px;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: clamp(22px, 16px + 1.6vw, 34px);
+  line-height: 1;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  text-transform: uppercase;
+}
+
+.tape-item .ja {
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 0.62em;
+  letter-spacing: 0.04em;
+}
+
+.tape-item .sep {
+  font-size: 0.6em;
+}
+
+.tape:focus-visible {
+  outline-color: var(--bone);
+  outline-offset: 6px;
+}
+
+/* ---------- ホバーで RGB がわずかにずれる（写真・ジャケット） ---------- */
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  .rgb-hover:hover img {
+    animation: rgb-hover 420ms steps(3) 1;
+  }
+}
+
+@keyframes rgb-hover {
+  0% {
+    filter: drop-shadow(-6px 0 0 rgb(255 0 60 / 0.55)) drop-shadow(6px 0 0 rgb(0 120 255 / 0.55));
+    transform: translateX(-3px) scale(1.03);
+  }
+  50% {
+    filter: drop-shadow(4px 0 0 rgb(255 0 60 / 0.5)) drop-shadow(-4px 0 0 rgb(0 120 255 / 0.5));
+    transform: translateX(2px) scale(1.03);
+  }
+  100% {
+    filter: none;
+    transform: scale(1.03);
+  }
+}

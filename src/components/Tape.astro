@@ -1,0 +1,48 @@
+---
+// 流れる帯（養生テープ風）: 次のライブの情報を、スクロールに合わせて横に流す（勝手には動かない）。押すと NEXT LIVE へ
+// 次のライブが終わったら出さない（ビルド時と表示時の両方で判定）
+import { nextLive, nextLiveEnded } from '../data/site';
+
+const l = nextLive;
+const pad = (n: number) => String(n).padStart(2, '0');
+const ended = nextLiveEnded();
+// 帯が途切れないように同じ並びを繰り返す（2つ目以降は読み上げない）
+const copies = [0, 1, 2, 3];
+---
+
+<a
+  class="tape"
+  href="/#live"
+  data-tape-ends={l.endsAt}
+  data-window
+  hidden={ended}
+  aria-label={`NEXT LIVE ${l.month}月${l.day}日（${l.weekday}） ${l.area} ${l.venue}「${l.title}」`}
+>
+  <span class="tape-track" aria-hidden="true">
+    {
+      copies.map(() => (
+        <span class="tape-item">
+          <span>NEXT LIVE</span>
+          <span class="sep">●</span>
+          <span>
+            {pad(l.month)}.{pad(l.day)}
+            <span class="ja">（{l.weekday}）</span>
+          </span>
+          <span class="ja">{l.area}</span>
+          <span translate="no">{l.venue}</span>
+          <span translate="no">「{l.title}」</span>
+          <span>
+            OPEN {l.open} / START {l.start}
+          </span>
+          <span class="sep">●</span>
+        </span>
+      ))
+    }
+  </span>
+</a>
+
+<style>
+  .tape[hidden] {
+    display: none;
+  }
+</style>

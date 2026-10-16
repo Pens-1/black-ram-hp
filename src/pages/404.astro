@@ -1,9 +1,13 @@
 ---
 import Base from '../layouts/Base.astro';
+import Stage from '../components/Stage.astro';
+import { stages } from '../data/site';
 ---
 
 <Base title="404 | BLACK RAM" description="ページが見つかりません。" noindex>
   <main id="main" class="nf">
+    <!-- 地: 暗い白黒のライブ写真。照明はマウスに寄る（スマホ・動きを減らす設定では止まる） -->
+    <Stage stage={stages.hero} sizes="100vw" rest="70% 35%" class="nf-ground" decorative />
     <a href="/" class="logo" aria-label="BLACK RAM トップへ">
       <img src="/logo/logo-full.webp" width="1200" height="1166" alt="BLACK RAM" fetchpriority="high" />
     </a>
@@ -15,8 +19,30 @@ import Base from '../layouts/Base.astro';
   </main>
 </Base>
 
+<script>
+  import '../scripts/main.ts';
+</script>
+
 <style>
+  .nf :global(.nf-ground) {
+    position: fixed;
+    inset: 0;
+    z-index: -2;
+  }
+
+  /* 文字の載る左下に Ink を敷く */
+  .nf::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    background: linear-gradient(to top right, rgb(13 12 11 / 0.9), rgb(13 12 11 / 0.35) 70%);
+    pointer-events: none;
+  }
+
   .nf {
+    position: relative;
+    isolation: isolate;
     min-height: 100dvh;
     display: grid;
     align-content: center;

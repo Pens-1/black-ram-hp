@@ -25,8 +25,8 @@ const n = nextLive;
         </div>
       </li>
       {
-        past.map((l) => (
-          <li class="row">
+        past.map((l, i) => (
+          <li class="row" data-reveal style={`--i:${i}`}>
             {l.flyer ? (
               <details class="live" data-flyer>
                 <summary aria-label={`${label(l)}（押すとフライヤーを表示）`}>
@@ -56,7 +56,14 @@ const n = nextLive;
                   {l.details && (
                     <ul class="details">
                       {l.details.map((d) => (
-                        <li>{d}</li>
+                        <li>
+                          {d.split(' / ').map((part, j) => (
+                            <>
+                              {j > 0 && ' / '}
+                              <span class="nowrap">{part}</span>
+                            </>
+                          ))}
+                        </li>
                       ))}
                     </ul>
                   )}

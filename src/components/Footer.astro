@@ -1,13 +1,21 @@
 ---
 import Contact from './Contact.astro';
+import { windows } from '../data/site';
 ---
 
-<!-- SNS の一覧と、横幅いっぱいのロゴで締める（全ページ共通） -->
+<!-- SNS の一覧と、横幅いっぱいのロゴで締める（全ページ共通）。
+     ロゴは窓: 緑の照明のライブ写真をロゴの形で切り抜き、スクロールで写真が少しずれる -->
 <Contact />
 <footer class="site-footer">
   <div class="wrap">
     <a href="/#top" class="foot-logo" aria-label="BLACK RAM トップへ">
       <img src="/logo/logo-wordmark.webp" width="900" height="272" alt="BLACK RAM" loading="lazy" decoding="async" />
+      <span
+        class="foot-window"
+        aria-hidden="true"
+        data-window
+        style={`--window:url("${windows.footer.src}-s.webp")`}
+      ></span>
     </a>
   </div>
 </footer>
@@ -19,12 +27,32 @@ import Contact from './Contact.astro';
   }
 
   .foot-logo {
+    position: relative;
     display: block;
   }
 
   .foot-logo img {
     width: 100%;
     height: auto;
+  }
+
+  /* mask に対応するブラウザだけ、ロゴの形の窓に置き換える（対応しなければ白いロゴのまま） */
+  @supports ((-webkit-mask-image: url('')) or (mask-image: url(''))) {
+    .foot-logo img {
+      opacity: 0;
+    }
+
+    .foot-window {
+      --shift: 0;
+      position: absolute;
+      inset: 0;
+      background-image: var(--window), linear-gradient(#8c877d, #8c877d);
+      background-blend-mode: screen;
+      background-size: cover;
+      background-position: calc(50% + var(--shift) * 40%) 45%;
+      -webkit-mask: url('/logo/logo-wordmark.webp') center / 100% 100% no-repeat;
+      mask: url('/logo/logo-wordmark.webp') center / 100% 100% no-repeat;
+    }
   }
 
   @media (min-width: 1200px) {
