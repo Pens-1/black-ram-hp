@@ -19,7 +19,9 @@ const canonical = Astro.site ? new URL(Astro.url.pathname, Astro.site).href : un
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{title}</title>
     <meta name="description" content={description} />
-    {noindex && <meta name="robots" content="noindex" />}
+    {/* デモ公開中は全ページ noindex。正式公開時にこの1行を消し、下の noindex 行を戻す */}
+    <meta name="robots" content="noindex, nofollow" />
+    {/* {noindex && <meta name="robots" content="noindex" />} */}
     {canonical && <link rel="canonical" href={canonical} />}
     <meta name="theme-color" content="#0d0c0b" />
 

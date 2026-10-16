@@ -44,6 +44,7 @@
 ## 4. 技術
 - Astro の静的サイト。進め方は web-design-flow に従う
 - デプロイ先は未定（指示があるまで公開しない）
+- デモ公開中は noindex（robots.txt の Disallow・public/_headers の X-Robots-Tag・Base.astro の robots meta）。正式公開時に外す
 
 ## 5. 本人に確認するもの
 ロゴの原本（SVG/透過PNG）、EPの順番と ASS HOLE のリンク、次のライブのチケット予約方法・出演順、メンバー名・パート・紹介文、ライブの年と今後の予定、物販の買い方、問い合わせ先、写真・動画の使用許可、撮影者のクレジット、聴く導線の形（A: Spotify埋め込み＋「ほかのサービスで聴く」→linkco.re ／ B: linkco.re リンクのみ。現状はサービス別リンクを並べた暫定版）、HPで一番してほしいこと（聴く／ライブ／フォロー の優先順位）
