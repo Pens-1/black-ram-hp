@@ -3,10 +3,7 @@ import Icon from './Icon.astro';
 import { videos } from '../data/site';
 ---
 
-<section class="section" id="video" aria-labelledby="video-title">
-  <div class="wrap">
-    <h2 class="section-title" id="video-title" data-reveal>VIDEO</h2>
-  </div>
+<section class="videos" aria-label="動画">
   <ul class="reels" aria-label="動画の一覧">
     {
       videos.map((v, i) => (
@@ -33,6 +30,10 @@ import { videos } from '../data/site';
 </section>
 
 <style>
+  .videos {
+    padding-block: 48px 96px;
+  }
+
   .reels {
     display: grid;
     grid-auto-flow: column;

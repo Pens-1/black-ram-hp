@@ -1,0 +1,39 @@
+---
+// 別ページ（/photo/ など）の共通の枠: ヘッダー → 冒頭の写真と見出し → 中身 → SNS / フッター
+import Base from './Base.astro';
+import Header from '../components/Header.astro';
+import PageHead from '../components/PageHead.astro';
+import Footer from '../components/Footer.astro';
+import type { Img } from '../data/site';
+
+interface Props {
+  title: string;
+  description: string;
+  photo: Img;
+  focus?: string;
+}
+const { title, description, photo, focus } = Astro.props;
+---
+
+<Base title={`${title} | BLACK RAM`} description={description}>
+  <Header />
+  <main id="main" tabindex="-1">
+    <PageHead title={title} photo={photo} focus={focus} />
+    <slot />
+  </main>
+  <Footer />
+</Base>
+
+<script>
+  import '../scripts/main.ts';
+</script>
+
+<style is:global>
+  main {
+    overflow-x: clip;
+  }
+
+  main:focus {
+    outline: none;
+  }
+</style>

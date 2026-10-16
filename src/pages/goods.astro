@@ -1,0 +1,11 @@
+---
+import Page from '../layouts/Page.astro';
+import Goods from '../components/Goods.astro';
+import { goods } from '../data/site';
+
+const lead = goods.find((g) => g.src === '/img/goods/Db_ZAHkk-q8-s7')!;
+---
+
+<Page title="GOODS" description="BLACK RAM のグッズ。" photo={lead}>
+  <Goods exclude={lead.src} />
+</Page>

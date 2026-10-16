@@ -1,5 +1,8 @@
 ---
-import { hero, srcset, stages } from '../data/site';
+import { eps, hero, srcset, stages } from '../data/site';
+
+// ロゴの下に最新作の「聴く」導線（押すと MUSIC へ移り、最新作のプレーヤーを読み込む）
+const latest = eps[0];
 
 // 地の写真は暗い白黒（scripts/make-stage.py の出力）だけを使う。色は照明（tint）で載せる
 const ground = { ...stages.hero.lit, src: stages.hero.dark };
@@ -48,6 +51,30 @@ const ground = { ...stages.hero.lit, src: stages.hero.dark };
     <h1 class="logo">
       <img src="/logo/logo-full.webp" width="1200" height="1166" alt="BLACK RAM" fetchpriority="high" />
     </h1>
+    {
+      latest && (
+        <a class="listen" href="#ep-latest" data-listen>
+          <img
+            class="listen-cover"
+            src={`${latest.cover.src}.webp`}
+            width={latest.cover.w}
+            height={latest.cover.h}
+            alt=""
+            decoding="async"
+          />
+          <span class="listen-text">
+            <span class="listen-label">LATEST</span>
+            <span class="listen-title nowrap" translate="no">
+              {latest.title}
+            </span>
+          </span>
+          <span class="listen-go">
+            <span class="ja">聴く</span>
+            <span class="tri" aria-hidden="true" />
+          </span>
+        </a>
+      )
+    }
   </div>
 
   <!-- RGB ずれ: 赤・緑・青のチャンネルを分けて左右にずらし、加算で重ね直す -->
@@ -193,12 +220,87 @@ const ground = { ...stages.hero.lit, src: stages.hero.dark };
   .inner {
     position: relative;
     display: flex;
-    align-items: flex-end;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: flex-start;
+    gap: 20px;
+    padding: var(--header-h) var(--gutter) max(32px, 5dvh);
   }
 
   .logo {
-    width: min(86vw, 520px);
-    margin: 0 0 max(40px, 6dvh) var(--gutter);
+    width: min(78vw, 480px);
+  }
+
+  /* 最新作の「聴く」: Bone の面に Ink の文字（ページで一番強い操作） */
+  .listen {
+    display: grid;
+    grid-template-columns: 64px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 14px;
+    width: min(100%, 440px);
+    padding: 8px;
+    background: var(--bone);
+    color: var(--ink);
+    text-decoration: none;
+    transition: background-color 220ms var(--ease);
+  }
+
+  .listen:hover {
+    background: #d9d4ca;
+  }
+
+  .listen:active {
+    transform: translateY(1px);
+  }
+
+  .listen-cover {
+    width: 64px;
+    height: 64px;
+    object-fit: cover;
+  }
+
+  .listen-text {
+    display: grid;
+    gap: 4px;
+    min-width: 0;
+  }
+
+  .listen-label {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 13px;
+    letter-spacing: 0.12em;
+    line-height: 1;
+  }
+
+  .listen-title {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: clamp(26px, 20px + 2vw, 36px);
+    line-height: 0.95;
+    text-transform: uppercase;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .listen-go {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 48px;
+    padding-inline: 18px 16px;
+    background: var(--ink);
+    color: var(--bone);
+    font-weight: 700;
+    font-size: 17px;
+    letter-spacing: 0.08em;
+  }
+
+  .tri {
+    width: 0;
+    height: 0;
+    border-block: 7px solid transparent;
+    border-left: 11px solid currentColor;
   }
 
   .logo img {
@@ -270,7 +372,7 @@ const ground = { ...stages.hero.lit, src: stages.hero.dark };
 
   @media (min-width: 768px) and (max-width: 1199px) {
     .logo {
-      width: min(60vw, 560px);
+      width: min(56vw, 520px);
     }
   }
 
@@ -298,7 +400,8 @@ const ground = { ...stages.hero.lit, src: stages.hero.dark };
     }
 
     .inner {
-      align-items: center;
+      justify-content: center;
+      gap: 32px;
       width: 100%;
       max-width: var(--max);
       margin-inline: auto;
@@ -306,8 +409,25 @@ const ground = { ...stages.hero.lit, src: stages.hero.dark };
     }
 
     .logo {
-      width: min(52%, 680px);
-      margin: 0;
+      width: min(46%, 600px);
+    }
+
+    .listen {
+      grid-template-columns: 88px minmax(0, 1fr) auto;
+      width: min(46%, 520px);
+      gap: 20px;
+      padding: 10px;
+    }
+
+    .listen-cover {
+      width: 88px;
+      height: 88px;
+    }
+
+    .listen-go {
+      min-height: 56px;
+      padding-inline: 24px 20px;
+      font-size: 20px;
     }
   }
 </style>

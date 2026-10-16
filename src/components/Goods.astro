@@ -1,11 +1,15 @@
 ---
 import { goods, srcset } from '../data/site';
-const [main, ...rest] = goods;
+
+interface Props {
+  /** ページの見出しの地に使った写真（重ねて出さない） */
+  exclude?: string;
+}
+const [main, ...rest] = goods.filter((g) => g.src !== Astro.props.exclude);
 ---
 
-<section class="section" id="goods" aria-labelledby="goods-title">
+<section class="goods" aria-label="グッズの写真">
   <div class="wrap layout">
-    <h2 class="section-title head" id="goods-title" data-reveal>GOODS</h2>
     {
       main && (
         <figure class="main grain" data-reveal>
@@ -44,6 +48,10 @@ const [main, ...rest] = goods;
 </section>
 
 <style>
+  .goods {
+    padding-block: 24px 96px;
+  }
+
   .layout {
     display: grid;
     gap: 4px;

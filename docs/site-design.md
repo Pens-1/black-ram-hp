@@ -1,25 +1,33 @@
-# BLACK RAM HP 設計書（構成 / 未確定）
+# BLACK RAM HP 設計書（構成）
 
 事実は PRODUCT.md が正。ここにない文言・数字は使わない（創作禁止）。見た目は DESIGN.md が正。
 
 ## 1. 役割
 - 今のSNSのリンク集（EP2枚の linkco.re、TuneCore、TikTok、X）を置き換える公式HP
 - 来訪者（推定）: SNSから来るスマホのリスナー、対バン・イベンター
-- 来た人にやってほしいこと: 曲を聴く／ライブ予定を見る／SNSをフォローする（優先順位は未確認）
+- 来た人にやってほしいこと（優先順）: ①曲を聴く ②次のライブに来る ③SNSをフォローする
 
-## 2. 構成（1ページ縦スクロール。アーティストサイトの定番構成）
+## 2. 構成
+
+### トップ（`/`、1ページ縦スクロール。「聴く → ライブ → フォロー」の順だけ）
 | # | ID | 内容 | 素材・リンク |
 |---|---|---|---|
-| 0 | header | ロゴ、メニュー（LIVE / MUSIC / VIDEO / GOODS / PROFILE / CONTACT）、SNSアイコン。スマホはメニューを開閉 | ロゴ |
-| 1 | hero | 縦リール動画を音なしでループ＋ロゴを大きく。動画が使えないときはライブ写真 | assets/video/reel-DaWx4pxxqvu.mp4 |
-| 2 | news | 告知の一覧（日付＋1行）。0件なら出さない | 内容は未確認 |
-| 3 | live | 今後の予定（日付・会場・タイトル・フライヤー）。過去公演は折りたたみ | 予定: 10/20（火） 梅田 ODYSSEY「VOLTAGE」（詳細は PRODUCT.md）。過去: 6/22 GATTACA「天変地異」、8/14 KYOTO MUSE（年は未確認） |
-| 4 | music | EPごとにジャケット＋配信リンク | RAM'S BALL → https://linkco.re/3CcSGHyp、BABY TANK → https://linkco.re/tM5cbf6t、ASS HOLE（リンク未確認） |
-| 5 | video | 縦リールのカード。タップで音ありで再生 | assets/video/*.mp4 |
-| 6 | photo | ライブ写真のギャラリー | assets/instagram/ig-DcHOFc4E20Q-s* ほか |
-| 7 | goods | Tシャツ写真。購入方法は未確認 | assets/instagram/ig-Db_ZAHkk-q8 系 |
-| 8 | profile | アー写。メンバー名・パート・紹介文は未確認なので空欄 | assets/raw/artist.png |
-| 9 | contact / footer | Instagram / X / TikTok / TuneCore、問い合わせ先（未確認） | 下のリンク一覧 |
+| 0 | header | ロゴ、MUSIC / LIVE への移動、SNSアイコン、全画面メニューのボタン（全幅で出す） | ロゴ |
+| 1 | hero | 現状維持（ロード時ロゴアニメ＋カラー縦動画＋グリッチ/閃光）。ロゴの下に最新作 RAM'S BALL の「聴く」導線を大きく（押すと MUSIC へ移り、最新作のプレーヤーを読み込む） | assets/video/reel-DaWx4pxxqvu.mp4、ジャケ |
+| 2 | music（主役） | EPごとにジャケット＋埋め込みプレーヤー（Spotify）でページ内で聴ける。最新作が一番上で大きく。各EPに配信サービスへのリンク（Spotify / Apple Music / YouTube Music / LINE MUSIC / Amazon Music、全サービスは linkco.re）。ASS HOLE はジャケットのみ | 配信URLは PRODUCT.md。埋め込みは押してから読み込む（ファサード） |
+| 3 | live | NEXT LIVE。10/20（火） 梅田 ODYSSEY「VOLTAGE」の確定情報（日付・曜日・会場・イベント名・OPEN/START・料金・出演者）を大きく。チケット予約方法・出演順・フライヤーは出さない。2026-10-21 以降は日付で判定して「次のライブは近日発表」に切り替える。過去公演はトップに出さず、別ページへの小さなリンクだけ | PRODUCT.md「次のライブ」 |
+| 4 | sns / footer | Instagram / X / TikTok / TuneCore の一覧と、大きいロゴで締める | 下のリンク一覧 |
+
+### 別ページ（ヘッダーの全画面メニューから行く。メニューは大きいロゴ＋グリッチ演出）
+| パス | 内容 | 素材 |
+|---|---|---|
+| /photo/ | ライブ写真。冒頭の1枚を断ち切りで敷いて見出しを上に組み、残りは不揃いのグリッド（押すと拡大） | assets/instagram/ig-DcHOFc4E20Q-s* ほか |
+| /video/ | 縦リール。タップで音ありで再生 | assets/video/*.mp4 |
+| /goods/ | Tシャツ写真。購入方法は未確認なので写真だけ | assets/instagram/ig-Db_ZAHkk-q8 系 |
+| /profile/ | アー写。メンバー名・パート・紹介文は未確認なので空欄 | assets/raw/artist.png |
+| /past-live/ | 過去のライブ（日付・会場・タイトル・フライヤー）。終わった次のライブも日付で判定してここに出る | 6/22 GATTACA「天変地異」、8/14 KYOTO MUSE（年は未確認） |
+
+別ページの見出しは、写真の上に直接組む（四角い写真を見出しの下に並べるだけにしない）。末尾は共通の SNS / フッター。
 
 ### リンク
 - Instagram: https://www.instagram.com/black_______ram/
@@ -28,7 +36,8 @@
 - TuneCore: https://www.tunecore.co.jp/artists?id=1109406
 
 ## 3. 状態
-- 予定ライブ0件: 「次のライブは近日発表」とだけ出す（文言は要確認）
+- 予定ライブ0件（次のライブの日付が過ぎた）: 「次のライブは近日発表」とだけ出す（文言は要確認）。判定はビルド時と表示時（JS）の両方で行う
+- 埋め込みプレーヤーは押すまで読み込まない。JSなしでは Spotify へのリンクになる
 - 動きを減らす設定のとき: 動画は止めて静止画を出す
 - 基準はスマホ（幅390）。PC（幅1280）でも崩れないこと
 
@@ -37,4 +46,4 @@
 - デプロイ先は未定（指示があるまで公開しない）
 
 ## 5. 本人に確認するもの
-ロゴの原本（SVG/透過PNG）、EPの順番と ASS HOLE のリンク、メンバー名・パート・紹介文、ライブの年と今後の予定、物販の買い方、問い合わせ先、写真・動画の使用許可、撮影者のクレジット
+ロゴの原本（SVG/透過PNG）、EPの順番と ASS HOLE のリンク、次のライブのチケット予約方法・出演順、メンバー名・パート・紹介文、ライブの年と今後の予定、物販の買い方、問い合わせ先、写真・動画の使用許可、撮影者のクレジット、聴く導線の形（A: Spotify埋め込み＋「ほかのサービスで聴く」→linkco.re ／ B: linkco.re リンクのみ。現状はサービス別リンクを並べた暫定版）、HPで一番してほしいこと（聴く／ライブ／フォロー の優先順位）

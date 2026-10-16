@@ -26,14 +26,41 @@ export const social = [
   { name: 'TikTok', icon: 'tiktok', href: links.tiktok, handle: '@blackram__' },
 ] as const;
 
+/** トップ内の移動（ヘッダーとメニュー） */
 export const nav = [
-  { id: 'live', label: 'LIVE' },
   { id: 'music', label: 'MUSIC' },
-  { id: 'video', label: 'VIDEO' },
-  { id: 'goods', label: 'GOODS' },
-  { id: 'profile', label: 'PROFILE' },
-  { id: 'contact', label: 'CONTACT' },
+  { id: 'live', label: 'LIVE' },
 ] as const;
+
+/** 別ページ（全画面メニューから行く） */
+export const pages = [
+  { href: '/photo/', label: 'PHOTO' },
+  { href: '/video/', label: 'VIDEO' },
+  { href: '/goods/', label: 'GOODS' },
+  { href: '/profile/', label: 'PROFILE' },
+  { href: '/past-live/', label: 'PAST LIVE' },
+] as const;
+
+/** 次のライブ（PRODUCT.md「次のライブ」の確定情報だけ。チケット予約方法・出演順・フライヤーは未確認なので持たない） */
+export const nextLive = {
+  /** 公演日（日本時間） */
+  date: '2026-10-20',
+  /** この時刻を過ぎたら「次のライブは近日発表」に切り替える（日本時間の翌日 0 時） */
+  endsAt: '2026-10-21T00:00:00+09:00',
+  month: 10,
+  day: 20,
+  weekday: '火',
+  area: '梅田',
+  venue: 'ODYSSEY',
+  title: 'VOLTAGE',
+  open: '17:30',
+  start: '18:00',
+  price: 'ADV/DOOR ¥2,500（＋1D ¥700）',
+  acts: ['BLACK RAM', "Neo'n'eat", 'bloom in zero', 'Skade', 'PANdeMIX'],
+};
+
+/** 次のライブが終わったか（ビルド時の判定。表示時は main.ts がもう一度判定する） */
+export const nextLiveEnded = (now = new Date()) => now.getTime() >= new Date(nextLive.endsAt).getTime();
 
 /** 告知。内容が未確認なので空。0件ならセクションごと出さない */
 export const news: { date: string; text: string; href?: string }[] = [];
@@ -47,12 +74,10 @@ export type Live = {
   /** フライヤーに書かれている情報（フライヤー画像のテキスト代替も兼ねる） */
   details?: string[];
   flyer?: Img;
-  /** 今後の公演なら true、終わった公演なら false */
-  upcoming: boolean;
 };
 
-// 年が未確認のため、終わったかどうかはデータで手動管理する。
-// 設計書（docs/site-design.md）で「今後の予定」に挙がっている2件を upcoming にしている。
+// 過去のライブ（/past-live/）。年が未確認なので月日だけ。古い順に並べ、ページでは新しい順に出す
+// 次のライブ（nextLive）は日付が過ぎると、このページの先頭にも出る
 export const lives: Live[] = [
   {
     month: 6,
@@ -70,7 +95,6 @@ export const lives: Live[] = [
       1600,
       '6月22日 LIVE HOUSE GATTACA「天変地異」のフライヤー。出演 Festina Lente、hakumeii、龍之介 (Slipout Blank)、BLACK RAM。OPEN 18:30 START 19:00、ADV ¥2400 DOOR ¥2900',
     ),
-    upcoming: false,
   },
   {
     month: 8,
@@ -82,11 +106,28 @@ export const lives: Live[] = [
       1600,
       '「8月14日 KYOTO MUSE」の告知画像。電車の扉に書かれた BLACK RAM の文字',
     ),
-    upcoming: false,
   },
 ];
 
-export type Ep = { title: string; cover: Img; href?: string };
+export type Service = { name: string; href: string };
+export type Ep = {
+  title: string;
+  cover: Img;
+  /** linkco.re（全配信サービスの一覧） */
+  href?: string;
+  /** Spotify のアルバムID（埋め込みプレーヤー用） */
+  spotify?: string;
+  services?: Service[];
+};
+
+// 配信URLは linkco.re の各ページのストアリンク（tunecore.co.jp/to/<store>/<id>）をたどって確認したもの（PRODUCT.md）
+const services = (id: number, spotify: string, apple: string, youtube: string): Service[] => [
+  { name: 'Spotify', href: `https://open.spotify.com/album/${spotify}` },
+  { name: 'Apple Music', href: apple },
+  { name: 'YouTube Music', href: youtube },
+  { name: 'LINE MUSIC', href: `https://www.tunecore.co.jp/to/line/${id}` },
+  { name: 'Amazon Music', href: `https://www.tunecore.co.jp/to/amazon_music/${id}` },
+];
 
 // 先頭が最新作（大きく出す）。ASS HOLE の配信リンクと EP の順番は未確認
 export const eps: Ep[] = [
@@ -94,11 +135,25 @@ export const eps: Ep[] = [
     title: "RAM'S BALL",
     cover: img('/img/music/rams-ball', 400, 400, "EP「RAM'S BALL」のジャケット。炎に包まれた手"),
     href: 'https://linkco.re/3CcSGHyp',
+    spotify: '6mcCk4SAouwsYp4cj9z692',
+    services: services(
+      1726936,
+      '6mcCk4SAouwsYp4cj9z692',
+      'https://music.apple.com/jp/album/rams-ball-single/6809121654',
+      'https://music.youtube.com/playlist?list=OLAK5uy_nzqhtBYsp06Ly0y6DgxTSTPmwADggNwM0',
+    ),
   },
   {
     title: 'BABY TANK',
     cover: img('/img/music/baby-tank', 400, 400, 'EP「BABY TANK」のジャケット。白地に描かれた骨の手'),
     href: 'https://linkco.re/tM5cbf6t',
+    spotify: '7cgggJee3zl2h7IODPjS9p',
+    services: services(
+      1807275,
+      '7cgggJee3zl2h7IODPjS9p',
+      'https://music.apple.com/jp/album/baby-tank-single/6776646587',
+      'https://music.youtube.com/playlist?list=OLAK5uy_lPjwJIhKskSOvItgZ2u8nEhS-tL1s4UTE',
+    ),
   },
   {
     title: 'ASS HOLE',
@@ -178,6 +233,6 @@ export const stages = {
 
 export const meta = {
   title: 'BLACK RAM',
-  description: 'BLACK RAM 公式サイト。ライブ予定、音源、映像、写真、グッズ。',
+  description: 'BLACK RAM 公式サイト。音源、次のライブ、SNS。',
   ogImage: '/og.jpg',
 };

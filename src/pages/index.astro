@@ -3,15 +3,12 @@ import Base from '../layouts/Base.astro';
 import Header from '../components/Header.astro';
 import Hero from '../components/Hero.astro';
 import Intro from '../components/Intro.astro';
-import News from '../components/News.astro';
-import Live from '../components/Live.astro';
 import Music from '../components/Music.astro';
-import Videos from '../components/Videos.astro';
-import Photos from '../components/Photos.astro';
-import Goods from '../components/Goods.astro';
-import Profile from '../components/Profile.astro';
-import Contact from '../components/Contact.astro';
+import Live from '../components/Live.astro';
 import Footer from '../components/Footer.astro';
+
+// トップは「聴く → ライブ → フォロー」の順だけ（docs/site-design.md）。
+// PHOTO / VIDEO / GOODS / PROFILE / 過去のライブは全画面メニューから行く別ページ
 ---
 
 <Base>
@@ -27,14 +24,8 @@ import Footer from '../components/Footer.astro';
   <Header />
   <main id="main" tabindex="-1">
     <Hero />
-    <News />
-    <Live />
     <Music />
-    <Videos />
-    <Photos />
-    <Goods />
-    <Profile />
-    <Contact />
+    <Live />
   </main>
   <Footer />
 </Base>

@@ -1,4 +1,4 @@
-// 最小限の動き: ロゴアニメーション / メニュー開閉 / ヘッダー背景 / 現在地 / 動画再生 / ストロボ / 写真の拡大 / 入ってくる動き
+// 最小限の動き: ロゴアニメーション / メニュー開閉 / ヘッダー背景 / 現在地 / 次のライブの切り替え / 埋め込みプレーヤー / 動画再生 / ストロボ / 写真の拡大 / 入ってくる動き
 // （フライヤーの開閉は <details> なので JS 不要）
 import { introDone, introRunning } from './intro';
 
@@ -10,7 +10,7 @@ const onScroll = () => header?.classList.toggle('is-scrolled', window.scrollY > 
 onScroll();
 window.addEventListener('scroll', onScroll, { passive: true });
 
-/* ---------- メニュー（スマホ） ---------- */
+/* ---------- 全画面メニュー（スマホ・PC 共通） ---------- */
 const menuBtn = document.querySelector<HTMLButtonElement>('[data-menu-btn]');
 const menu = document.querySelector<HTMLElement>('[data-menu]');
 const menuLabel = document.querySelector<HTMLElement>('[data-menu-label]');
@@ -32,7 +32,6 @@ document.addEventListener('keydown', (e) => {
     menuBtn.focus();
   }
 });
-window.matchMedia('(min-width: 1024px)').addEventListener('change', (e) => e.matches && setMenu(false));
 
 /* ---------- 今いるセクションに下線 ---------- */
 const navLinks = Array.from(document.querySelectorAll<HTMLAnchorElement>('[data-nav]'));
@@ -55,6 +54,55 @@ if (sections.length) {
   );
   sections.forEach((s) => io.observe(s));
 }
+
+/* ---------- 次のライブ: 日付が過ぎたら「次のライブは近日発表」に切り替える ----------
+   ビルド時にも判定しているが、ビルドし直さなくても表示時の日付で切り替わるようにする */
+const now = Date.now();
+const passed = (iso?: string) => !!iso && now >= new Date(iso).getTime();
+const nextLive = document.querySelector<HTMLElement>('[data-next-live]');
+if (nextLive && passed(nextLive.dataset.ends)) {
+  nextLive.hidden = true;
+  const empty = document.querySelector<HTMLElement>('[data-next-empty]');
+  if (empty) empty.hidden = false;
+}
+// 過去のライブのページ: 終わった次のライブを先頭に出す
+document.querySelectorAll<HTMLElement>('[data-past-from]').forEach((el) => {
+  if (passed(el.dataset.pastFrom)) el.hidden = false;
+});
+
+/* ---------- 埋め込みプレーヤー（Spotify）: 押すまで読み込まない ----------
+   「聴く」は Spotify へのリンク。JS があれば、その場で埋め込みを読み込んで開く */
+function openEmbed(btn: HTMLAnchorElement) {
+  const ep = btn.closest<HTMLElement>('[data-ep]');
+  const slot = ep?.querySelector<HTMLElement>('[data-player]');
+  const id = btn.dataset.embed;
+  if (!ep || !slot || !id) return false;
+  if (!ep.classList.contains('is-embedded')) {
+    const iframe = document.createElement('iframe');
+    iframe.src = `https://open.spotify.com/embed/album/${encodeURIComponent(id)}?utm_source=generator&theme=0`;
+    iframe.title = `${btn.dataset.embedTitle ?? ''}（Spotify プレーヤー）`;
+    iframe.loading = 'lazy';
+    iframe.allow = 'autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture';
+    if (btn.hasAttribute('data-embed-compact')) iframe.height = '152';
+    slot.append(iframe);
+    ep.classList.add('is-embedded');
+  }
+  return true;
+}
+document.querySelectorAll<HTMLAnchorElement>('[data-embed]').forEach((btn) =>
+  btn.addEventListener('click', (e) => {
+    if (e.metaKey || e.ctrlKey || e.shiftKey) return; // 新しいタブで開きたいときはそのまま
+    if (openEmbed(btn)) {
+      e.preventDefault();
+      btn.closest('[data-ep]')?.querySelector('iframe')?.focus();
+    }
+  }),
+);
+// ヒーローの「聴く」: MUSIC の最新作へ移り、プレーヤーを読み込む（移動はリンクの既定の動き）
+document.querySelector('[data-listen]')?.addEventListener('click', () => {
+  const first = document.querySelector<HTMLAnchorElement>('#ep-latest [data-embed]');
+  if (first) openEmbed(first);
+});
 
 /* ---------- ヒーロー動画（動きを減らす設定ではポスターのまま） ---------- */
 const heroVideo = document.querySelector<HTMLVideoElement>('[data-hero-video]');

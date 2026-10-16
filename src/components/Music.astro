@@ -1,16 +1,20 @@
 ---
-import { eps, links } from '../data/site';
+import Icon from './Icon.astro';
+import { eps, links, type Ep } from '../data/site';
 const [latest, ...others] = eps;
+
+// 埋め込みは押してから読み込む（main.ts「埋め込みプレーヤー」）。JSなしではボタンが Spotify へのリンクになる
+const spotifyUrl = (ep: Ep) => `https://open.spotify.com/album/${ep.spotify}`;
 ---
 
-<section class="section" id="music" aria-labelledby="music-title">
-  <div class="wrap grid">
-    <h2 class="section-title head" id="music-title" data-reveal>MUSIC</h2>
+<section class="section music" id="music" aria-labelledby="music-title">
+  <div class="wrap">
+    <h2 class="section-title" id="music-title" data-reveal>MUSIC</h2>
 
     {
       latest && (
-        <article class="ep ep-latest" data-reveal>
-          <div class="cover">
+        <article class="ep ep-latest" id="ep-latest" data-ep data-reveal>
+          <div class="cover" data-player>
             <img
               src={`${latest.cover.src}.webp`}
               width={latest.cover.w}
@@ -21,13 +25,40 @@ const [latest, ...others] = eps;
             />
           </div>
           <div class="meta">
-            <h3 class="ep-title nowrap" translate="no">{latest.title}</h3>
-            {latest.href && (
-              <a class="btn" href={latest.href} target="_blank" rel="noopener">
+            <h3 class="ep-title nowrap" translate="no">
+              {latest.title}
+            </h3>
+            {latest.spotify && (
+              <a
+                class="btn listen"
+                href={spotifyUrl(latest)}
+                target="_blank"
+                rel="noopener"
+                data-embed={latest.spotify}
+                data-embed-title={latest.title}
+              >
+                <Icon name="play" size={18} />
                 <span class="ja">聴く</span>
-                <span aria-hidden="true">↗</span>
-                <span class="sr-only">（{latest.title}、新しいタブで開く）</span>
+                <span class="sr-only">（{latest.title}。この場で Spotify のプレーヤーを開く）</span>
               </a>
+            )}
+            {latest.services && (
+              <ul class="services" aria-label={`${latest.title} の配信サービス`}>
+                {latest.services.map((s) => (
+                  <li>
+                    <a class="ext" href={s.href} target="_blank" rel="noopener" translate="no">
+                      {s.name}
+                    </a>
+                  </li>
+                ))}
+                {latest.href && (
+                  <li>
+                    <a class="ext" href={latest.href} target="_blank" rel="noopener">
+                      ほかの配信サービス
+                    </a>
+                  </li>
+                )}
+              </ul>
             )}
           </div>
         </article>
@@ -37,7 +68,7 @@ const [latest, ...others] = eps;
     <div class="others">
       {
         others.map((ep, i) => (
-          <article class="ep" data-reveal style={`--i:${i + 1}`}>
+          <article class="ep ep-small" data-ep data-reveal style={`--i:${i + 1}`}>
             <div class="cover">
               <img
                 src={`${ep.cover.src}.webp`}
@@ -49,15 +80,44 @@ const [latest, ...others] = eps;
               />
             </div>
             <div class="meta">
-              <h3 class="ep-title nowrap" translate="no">{ep.title}</h3>
-              {ep.href && (
-                <a class="btn" href={ep.href} target="_blank" rel="noopener">
+              <h3 class="ep-title nowrap" translate="no">
+                {ep.title}
+              </h3>
+              {ep.spotify && (
+                <a
+                  class="btn listen"
+                  href={spotifyUrl(ep)}
+                  target="_blank"
+                  rel="noopener"
+                  data-embed={ep.spotify}
+                  data-embed-title={ep.title}
+                  data-embed-compact
+                >
+                  <Icon name="play" size={16} />
                   <span class="ja">聴く</span>
-                  <span aria-hidden="true">↗</span>
-                  <span class="sr-only">（{ep.title}、新しいタブで開く）</span>
+                  <span class="sr-only">（{ep.title}。この場で Spotify のプレーヤーを開く）</span>
                 </a>
               )}
             </div>
+            {ep.spotify && <div class="compact" data-player />}
+            {ep.services && (
+              <ul class="services" aria-label={`${ep.title} の配信サービス`}>
+                {ep.services.map((s) => (
+                  <li>
+                    <a class="ext" href={s.href} target="_blank" rel="noopener" translate="no">
+                      {s.name}
+                    </a>
+                  </li>
+                ))}
+                {ep.href && (
+                  <li>
+                    <a class="ext" href={ep.href} target="_blank" rel="noopener">
+                      ほかの配信サービス
+                    </a>
+                  </li>
+                )}
+              </ul>
+            )}
           </article>
         ))
       }
@@ -70,12 +130,12 @@ const [latest, ...others] = eps;
 </section>
 
 <style>
-  .grid {
+  .music .wrap {
     display: grid;
-    gap: 48px 16px;
+    gap: 48px 24px;
   }
 
-  .head {
+  .music .section-title {
     margin-bottom: 0;
   }
 
@@ -86,6 +146,7 @@ const [latest, ...others] = eps;
   }
 
   .cover {
+    position: relative;
     overflow: hidden;
     background: var(--soot);
   }
@@ -106,10 +167,32 @@ const [latest, ...others] = eps;
     }
   }
 
+  /* プレーヤー: 最新作はジャケットの上に重ねて開く（ジャケットを窓にする） */
+  .cover :global(iframe) {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
+    background: var(--ink);
+  }
+
+  .compact:empty {
+    display: none;
+  }
+
+  .compact :global(iframe) {
+    display: block;
+    width: 100%;
+    height: 152px;
+    border: 0;
+  }
+
   .meta {
     display: grid;
     gap: 16px;
     justify-items: start;
+    align-content: start;
   }
 
   .ep-title {
@@ -121,21 +204,88 @@ const [latest, ...others] = eps;
   }
 
   .ep-latest .ep-title {
-    font-size: clamp(32px, 22px + 2.6vw, 56px);
+    font-size: clamp(48px, 30px + 6vw, 112px);
     font-weight: 800;
-    line-height: 0.95;
+    line-height: 0.9;
+    letter-spacing: -0.01em;
   }
 
-  /* スマホ: 最新作は幅いっぱい、他は2列 */
-  .others {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 16px;
-    align-items: start;
+  /* 「聴く」: 白黒反転を常時（このセクションで一番強い操作） */
+  .listen {
+    background: var(--bone);
+    color: var(--ink);
+  }
+
+  .listen:hover {
+    background: #d9d4ca;
+    color: var(--ink);
+  }
+
+  .listen:focus-visible {
+    outline-color: var(--bone);
+  }
+
+  .ep-latest .listen {
+    min-height: 60px;
+    padding: 18px 32px;
+    font-size: 20px;
+  }
+
+  /* 埋め込みを開いたら「聴く」は消す（プレーヤーで操作する） */
+  :global(.ep.is-embedded) .listen {
+    display: none;
+  }
+
+  .services {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 20px;
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 16px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .services li:last-child a {
+    font-family: var(--font-body);
+    font-weight: 500;
+    font-size: 13px;
+    text-transform: none;
+    color: var(--ash);
+  }
+
+  .services a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    text-decoration: none;
+    text-underline-offset: 0.3em;
+  }
+
+  .services a:hover {
+    text-decoration: underline;
+    color: var(--bone);
   }
 
   .ep-latest .cover {
     margin-inline: calc(var(--gutter) * -1);
+  }
+
+  /* スマホ: 他の EP は小さいジャケットの横に名前とボタン */
+  .others {
+    display: grid;
+    gap: 40px;
+  }
+
+  .ep-small {
+    grid-template-columns: 120px minmax(0, 1fr);
+    gap: 16px;
+  }
+
+  .ep-small .compact,
+  .ep-small .services {
+    grid-column: 1 / -1;
   }
 
   .all {
@@ -152,57 +302,63 @@ const [latest, ...others] = eps;
   }
 
   @media (min-width: 768px) {
-    .grid {
+    .music .wrap {
       grid-template-columns: repeat(12, minmax(0, 1fr));
-      column-gap: 24px;
     }
 
-    .head {
+    .music .section-title,
+    .ep-latest {
       grid-column: 1 / -1;
     }
 
     .ep-latest {
-      grid-column: 1 / span 7;
-      grid-template-columns: minmax(0, 1fr);
-    }
-
-    .ep-latest .cover {
-      margin-inline: 0;
-      max-width: 560px;
-    }
-
-    .others {
-      grid-column: 8 / -1;
-      grid-template-columns: 1fr;
-      gap: 40px;
-      /* 最新作より下げて置き、段差を作る */
-      padding-top: 96px;
-    }
-
-    .others .ep {
-      grid-template-columns: minmax(0, 200px) 1fr;
-      gap: 20px;
+      grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+      gap: 32px;
       align-items: end;
     }
 
+    .ep-latest .cover {
+      margin-inline: calc(var(--gutter) * -1) 0;
+    }
+
+    .others {
+      grid-column: 1 / -1;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 40px 32px;
+      align-items: start;
+    }
+
+    /* 段差を付ける */
+    .others .ep:nth-child(2) {
+      margin-top: 64px;
+    }
+
+    .ep-small {
+      grid-template-columns: minmax(0, 180px) minmax(0, 1fr);
+      gap: 20px;
+    }
+
     .all {
-      grid-column: 8 / -1;
+      grid-column: 1 / -1;
     }
   }
 
   @media (min-width: 1200px) {
     .ep-latest {
-      grid-template-columns: minmax(0, 560px) auto;
-      align-items: end;
-      gap: 32px;
+      grid-template-columns: minmax(0, 640px) minmax(0, 1fr);
+      gap: 48px;
     }
 
-    .ep-latest .meta {
-      padding-bottom: 8px;
+    .ep-latest .cover {
+      margin-inline: 0;
     }
 
-    .others .ep {
-      grid-template-columns: minmax(0, 240px) 1fr;
+    .others {
+      grid-column: 3 / -1;
+    }
+
+    .ep-small {
+      grid-template-columns: minmax(0, 200px) minmax(0, 1fr);
     }
   }
 </style>

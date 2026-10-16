@@ -1,0 +1,11 @@
+---
+import Page from '../layouts/Page.astro';
+import PastLive from '../components/PastLive.astro';
+import { photos } from '../data/site';
+
+const lead = photos.find((p) => p.src === '/img/photo/Dc3l2V7MfRr')!;
+---
+
+<Page title="PAST LIVE" description="BLACK RAM の過去のライブ。" photo={lead}>
+  <PastLive />
+</Page>

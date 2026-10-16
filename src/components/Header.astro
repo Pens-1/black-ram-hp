@@ -1,6 +1,9 @@
 ---
 import Icon from './Icon.astro';
-import { nav, social } from '../data/site';
+import { nav, pages, social } from '../data/site';
+
+// 今いる別ページ（/photo/ など）をメニューで示す
+const path = Astro.url.pathname.replace(/\/?$/, '/');
 ---
 
 <header class="site-header" data-header>
@@ -49,7 +52,11 @@ import { nav, social } from '../data/site';
   </div>
 
   <div class="menu" id="menu" data-menu hidden>
-    <nav aria-label="メニュー">
+    <!-- 大きいロゴ。開いた瞬間と数秒おきにグリッチ（RGB ずれ＋段のついた横ずれ） -->
+    <a class="menu-logo" href="/#top" aria-label="BLACK RAM トップへ" data-menu-link>
+      <img src="/logo/logo-full.webp" width="1200" height="1166" alt="" loading="lazy" decoding="async" />
+    </a>
+    <nav class="menu-nav" aria-label="メニュー">
       <ul class="menu-list">
         {
           nav.map((n, i) => (
@@ -61,18 +68,41 @@ import { nav, social } from '../data/site';
           ))
         }
       </ul>
+      <ul class="menu-list menu-pages">
+        {
+          pages.map((p, i) => (
+            <li style={`--i:${i + nav.length}`}>
+              <a href={p.href} aria-current={path === p.href ? 'page' : undefined} data-menu-link>
+                {p.label}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+      <ul class="menu-sns">
+        {
+          social.map((s) => (
+            <li>
+              <a href={s.href} target="_blank" rel="noopener" class="ext">
+                {s.name}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
     </nav>
-    <ul class="menu-sns">
-      {
-        social.map((s) => (
-          <li>
-            <a href={s.href} target="_blank" rel="noopener" class="ext">
-              {s.name}
-            </a>
-          </li>
-        ))
-      }
-    </ul>
+
+    <svg class="defs" width="0" height="0" aria-hidden="true" focusable="false">
+      <filter id="menu-split" x="-5%" y="0" width="110%" height="100%" color-interpolation-filters="sRGB">
+        <feColorMatrix in="SourceGraphic" type="matrix" values="1 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 1 0" result="r" />
+        <feOffset in="r" dx="-18" dy="0" result="r2" />
+        <feColorMatrix in="SourceGraphic" type="matrix" values="0 0 0 0 0  0 1 0 0 0  0 0 0 0 0  0 0 0 1 0" result="g" />
+        <feColorMatrix in="SourceGraphic" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 1 0 0  0 0 0 1 0" result="b" />
+        <feOffset in="b" dx="18" dy="0" result="b2" />
+        <feBlend in="r2" in2="g" mode="screen" result="rg" />
+        <feBlend in="rg" in2="b2" mode="screen" />
+      </filter>
+    </svg>
   </div>
 </header>
 
@@ -178,10 +208,10 @@ import { nav, social } from '../data/site';
     position: fixed;
     inset: var(--header-h) 0 0;
     background: var(--char);
-    padding: 32px var(--gutter) 48px;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
+    padding: 16px var(--gutter) 48px;
+    display: grid;
+    align-content: start;
+    gap: 24px;
     overflow-y: auto;
     overscroll-behavior: contain;
   }
@@ -190,19 +220,95 @@ import { nav, social } from '../data/site';
     display: none;
   }
 
+  .defs {
+    position: absolute;
+    width: 0;
+    height: 0;
+  }
+
+  .menu-logo {
+    display: block;
+    width: min(64vw, 300px);
+  }
+
+  .menu-logo img {
+    width: 100%;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .menu:not([hidden]) .menu-logo img {
+      animation: menu-glitch 3.6s steps(1) infinite;
+    }
+  }
+
+  /* 開いた瞬間と、約1.7秒後・3秒後に短くずれる。steps(1) で段のついた動き */
+  @keyframes menu-glitch {
+    0% {
+      transform: translate(-6%, 0) scale(1.08);
+      filter: url(#menu-split);
+    }
+    2% {
+      transform: translate(5%, -1.5%) scale(1.12) skewX(-4deg);
+      filter: url(#menu-split);
+    }
+    4% {
+      transform: translate(-2%, 1%) scale(1.04);
+      filter: url(#menu-split);
+    }
+    6% {
+      transform: none;
+      filter: none;
+    }
+    47% {
+      transform: translate(4%, 0) scale(1.06);
+      filter: url(#menu-split);
+    }
+    49% {
+      transform: none;
+      filter: none;
+    }
+    83% {
+      transform: translate(-3%, 1%) scale(1.1) skewX(3deg);
+      filter: url(#menu-split);
+    }
+    84.5% {
+      transform: translate(2%, 0);
+      filter: url(#menu-split);
+    }
+    86% {
+      transform: none;
+      filter: none;
+    }
+    100% {
+      transform: none;
+      filter: none;
+    }
+  }
+
+  .menu-nav {
+    display: grid;
+    gap: 24px;
+  }
+
   .menu-list a {
     display: block;
-    padding-block: 6px;
+    padding-block: 4px;
     font-family: var(--font-display);
     font-weight: 800;
-    font-size: clamp(48px, 14vw, 72px);
+    font-size: clamp(44px, 12vw, 72px);
     line-height: 1;
     letter-spacing: -0.01em;
     text-decoration: none;
   }
 
+  .menu-pages a {
+    font-size: clamp(32px, 9vw, 56px);
+    font-weight: 700;
+  }
+
   .menu-list a:hover,
-  .menu-list a[aria-current='true'] {
+  .menu-list a[aria-current='true'],
+  .menu-list a[aria-current='page'] {
     text-decoration: underline;
     text-decoration-thickness: 3px;
     text-underline-offset: 0.12em;
@@ -212,7 +318,7 @@ import { nav, social } from '../data/site';
     display: flex;
     flex-wrap: wrap;
     gap: 8px 24px;
-    padding-top: 32px;
+    padding-top: 8px;
   }
 
   .menu-sns a {
@@ -252,9 +358,17 @@ import { nav, social } from '../data/site';
       display: flex;
     }
 
-    .menu-btn,
+    /* PC: 左にロゴを大きく、右に項目 */
     .menu {
-      display: none !important;
+      grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+      align-content: center;
+      align-items: center;
+      gap: 64px;
+      padding: 32px max(var(--gutter), (100% - var(--max)) / 2 + var(--gutter));
+    }
+
+    .menu-logo {
+      width: min(100%, 520px);
     }
   }
 </style>

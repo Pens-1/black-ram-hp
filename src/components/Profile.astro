@@ -1,6 +1,7 @@
 ---
 import { profile, srcset, type Img } from '../data/site';
 const [tall, ...wides] = profile.sub;
+
 const pic = (i: Img, sizes: string) => ({
   src: `${i.src}.webp`,
   srcset: srcset(i),
@@ -13,9 +14,8 @@ const pic = (i: Img, sizes: string) => ({
 });
 ---
 
-<section class="section" id="profile" aria-labelledby="profile-title">
+<section class="profile" aria-label="プロフィール">
   <div class="wrap layout">
-    <h2 class="section-title head" id="profile-title" data-reveal>PROFILE</h2>
 
     <figure class="artist grain" data-reveal>
       <img {...pic(profile.main, '(min-width: 768px) 40vw, 100vw')} />
@@ -56,6 +56,10 @@ const pic = (i: Img, sizes: string) => ({
 </section>
 
 <style>
+  .profile {
+    padding-block: 48px 96px;
+  }
+
   .layout {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));

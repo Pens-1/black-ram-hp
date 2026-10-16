@@ -1,0 +1,11 @@
+---
+import Page from '../layouts/Page.astro';
+import Profile from '../components/Profile.astro';
+import { photos } from '../data/site';
+
+const lead = photos.find((p) => p.src === '/img/photo/DcHOFc4E20Q-s16')!;
+---
+
+<Page title="PROFILE" description="BLACK RAM のプロフィール。" photo={lead} focus="50% 30%">
+  <Profile />
+</Page>

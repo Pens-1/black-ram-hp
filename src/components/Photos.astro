@@ -1,16 +1,16 @@
 ---
 import Icon from './Icon.astro';
-import { photos, srcset } from '../data/site';
+import { photos as all, srcset } from '../data/site';
+
+// 冒頭の1枚（ページの見出しの地）は除く
+const photos = all.slice(1);
 
 // 不揃いのグリッドにするため、横長の何枚かを2列ぶんに広げる
-const wide = new Set([0, 4, 13]);
+const wide = new Set([3, 12]);
 const shape = (w: number, h: number) => (w > h * 1.1 ? 'land' : h > w * 1.1 ? 'port' : 'square');
 ---
 
-<section class="section photo-section" id="photo" aria-labelledby="photo-title">
-  <div class="wrap">
-    <h2 class="section-title" id="photo-title" data-reveal>PHOTO</h2>
-  </div>
+<section class="photo-section" aria-label="写真の一覧">
 
   <div class="gallery-wrap">
     <ul class="gallery" data-gallery>
@@ -107,9 +107,28 @@ const shape = (w: number, h: number) => (w > h * 1.1 ? 'land' : h > w * 1.1 ? 'p
     object-fit: cover;
   }
 
+  .photo-section {
+    padding-block: 4px 96px;
+  }
+
+  /* マウスのとき: 白黒で並べ、乗ると照明の色がにじみ出る */
+  @media (hover: hover) and (pointer: fine) {
+    .thumb img {
+      filter: grayscale(1) contrast(1.15) brightness(0.85);
+      transition: filter 300ms var(--ease);
+    }
+
+    .thumb:hover img,
+    .thumb:focus-visible img {
+      filter: none;
+    }
+  }
+
   @media (prefers-reduced-motion: no-preference) {
     .thumb img {
-      transition: transform 300ms var(--ease);
+      transition:
+        transform 300ms var(--ease),
+        filter 300ms var(--ease);
     }
 
     .thumb:hover img {

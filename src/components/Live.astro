@@ -1,249 +1,176 @@
 ---
-import Icon from './Icon.astro';
-import { lives, srcset, type Live } from '../data/site';
+import { nextLive, nextLiveEnded } from '../data/site';
 
-const upcoming = lives.filter((l) => l.upcoming);
-const past = lives.filter((l) => !l.upcoming).reverse();
+// ビルド時に終わっていれば最初から「近日発表」。表示時にも main.ts が data-ends で判定して切り替える
+const ended = nextLiveEnded();
+const l = nextLive;
 const pad = (n: number) => String(n).padStart(2, '0');
-const label = (l: Live) => `${l.month}月${l.day}日 ${l.venue}${l.title ? `「${l.title}」` : ''}`;
 ---
 
-<section class="section" id="live" aria-labelledby="live-title">
+<section class="section live" id="live" aria-labelledby="live-title">
   <div class="wrap">
-    <h2 class="section-title" id="live-title" data-reveal>LIVE</h2>
+    <h2 class="section-title" id="live-title" data-reveal>NEXT LIVE</h2>
 
-    {
-      upcoming.length === 0 ? (
-        <p class="empty" data-reveal>
-          次のライブは近日発表
-        </p>
-      ) : (
-        <ol class="rows">
-          {upcoming.map((l, i) => (
-            <li class:list={['row', { next: i === 0 }]} data-reveal style={`--i:${i}`}>
-              {l.flyer ? (
-                <details class="live" data-flyer>
-                  <summary aria-label={`${label(l)}（押すとフライヤーを表示）`}>
-                    <span class="date">
-                      {pad(l.month)}.{pad(l.day)}
-                    </span>
-                    <span class="info">
-                      <span class="venue nowrap" translate="no">{l.venue}</span>
-                      {l.title && <span class="title nowrap">{l.title}</span>}
-                    </span>
-                    <span class="toggle">
-                      <span class="toggle-text">FLYER</span>
-                      <Icon name="caret-down" size={20} />
-                    </span>
-                  </summary>
-                  <div class="flyer">
-                    <img
-                      src={`${l.flyer.src}.webp`}
-                      srcset={srcset(l.flyer)}
-                      sizes="(min-width: 768px) 420px, 100vw"
-                      width={l.flyer.w}
-                      height={l.flyer.h}
-                      alt={l.flyer.alt}
-                      loading="lazy"
-                      decoding="async"
-                    />
-                    {l.details && (
-                      <ul class="details">
-                        {l.details.map((d) => (
-                          <li>{d}</li>
-                        ))}
-                      </ul>
-                    )}
-                  </div>
-                </details>
-              ) : (
-                <div class="live static">
-                  <span class="date">
-                    {pad(l.month)}.{pad(l.day)}
-                  </span>
-                  <span class="info">
-                    <span class="venue nowrap" translate="no">{l.venue}</span>
-                    {l.title && <span class="title nowrap">{l.title}</span>}
-                  </span>
-                </div>
-              )}
-            </li>
-          ))}
-        </ol>
-      )
-    }
+    <article class="next" data-next-live data-ends={l.endsAt} hidden={ended} aria-labelledby="next-venue" data-reveal>
+      <p class="date">
+        <time datetime={`${l.date}T${l.start}+09:00`}>
+          <span class="md">{pad(l.month)}.{pad(l.day)}</span>
+          <span class="wd">（{l.weekday}）</span>
+        </time>
+      </p>
+      <div class="body">
+        <h3 class="where" id="next-venue">
+          <span class="area">{l.area}</span>
+          <span class="venue nowrap" translate="no">{l.venue}</span>
+        </h3>
+        <p class="event nowrap">「<span translate="no">{l.title}</span>」</p>
+        <dl class="facts">
+          <div>
+            <dt>OPEN / START</dt>
+            <dd class="num">{l.open} / {l.start}</dd>
+          </div>
+          <div>
+            <dt>料金</dt>
+            <dd>{l.price}</dd>
+          </div>
+          <div>
+            <dt>出演</dt>
+            <dd>
+              <ul class="acts" translate="no">
+                {l.acts.map((a) => <li class="nowrap">{a}</li>)}
+              </ul>
+            </dd>
+          </div>
+        </dl>
+      </div>
+    </article>
 
-    {
-      past.length > 0 && (
-        <details class="past" data-reveal>
-          <summary>
-            <span>過去の公演</span>
-            <Icon name="caret-down" size={20} />
-          </summary>
-          <ol class="past-list">
-            {past.map((l) => (
-              <li>
-                <span class="date">
-                  {pad(l.month)}.{pad(l.day)}
-                </span>
-                <span class="nowrap" translate="no">{l.venue}</span>
-                {l.title && <span class="nowrap">{l.title}</span>}
-              </li>
-            ))}
-          </ol>
-        </details>
-      )
-    }
+    <p class="empty" data-next-empty hidden={!ended}>次のライブは近日発表</p>
+
+    <p class="past" data-reveal>
+      <a class="text-link" href="/past-live/">過去のライブ</a>
+    </p>
   </div>
 </section>
 
 <style>
-  .rows {
-    border-bottom: 1px solid var(--line);
+  .next {
+    display: grid;
+    gap: 24px;
+    margin-inline: calc(var(--gutter) * -1);
+    padding: 32px var(--gutter) 40px;
+    background: var(--bone);
+    color: var(--ink);
   }
 
-  .row {
-    border-top: 1px solid var(--line);
-  }
-
-  summary {
-    list-style: none;
-    cursor: pointer;
-  }
-
-  summary::-webkit-details-marker {
+  .next[hidden],
+  .empty[hidden] {
     display: none;
   }
 
-  .live > summary,
-  .live.static {
-    display: grid;
-    grid-template-columns: 1fr auto;
-    grid-template-areas:
-      'date toggle'
-      'info info';
-    align-items: end;
-    gap: 8px 16px;
-    padding: 24px 0;
-    min-height: 44px;
-  }
-
-  .row.next .live > summary,
-  .row.next .live.static {
-    background: var(--bone);
-    color: var(--ink);
-    padding-inline: 16px;
-    margin-inline: -16px;
-  }
-
-  .live > summary:hover {
-    background: var(--char);
-  }
-
-  .row.next .live > summary:hover {
-    background: #d9d4ca;
-  }
-
-  .live > summary:focus-visible {
-    outline-offset: -2px;
-  }
-
-  .row.next .live > summary:focus-visible {
-    outline-color: var(--ink);
-  }
-
   .date {
-    grid-area: date;
     font-family: var(--font-display);
-    font-weight: 700;
-    font-size: clamp(40px, 29.5px + 2.7vw, 64px);
-    line-height: 1;
+    font-weight: 800;
+    line-height: 0.82;
+    letter-spacing: -0.02em;
     font-variant-numeric: tabular-nums;
-    letter-spacing: 0;
-    white-space: nowrap;
   }
 
-  .info {
-    grid-area: info;
+  .md {
+    display: block;
+    font-size: clamp(112px, 34vw, 280px);
+  }
+
+  .wd {
+    display: block;
+    margin-top: 12px;
+    font-family: var(--font-body);
+    font-weight: 700;
+    font-size: 20px;
+    letter-spacing: 0.04em;
+    line-height: 1;
+  }
+
+  .body {
+    display: grid;
+    gap: 16px;
+    align-content: start;
+  }
+
+  .where {
     display: flex;
     flex-wrap: wrap;
     align-items: baseline;
     gap: 4px 16px;
+    font-weight: 700;
+  }
+
+  .area {
+    font-size: 18px;
+    letter-spacing: 0.04em;
   }
 
   .venue {
     font-family: var(--font-display);
-    font-weight: 700;
-    font-size: clamp(24px, 19px + 1vw, 32px);
-    line-height: 1.1;
+    font-weight: 800;
+    font-size: clamp(48px, 30px + 5vw, 96px);
+    line-height: 0.9;
     text-transform: uppercase;
   }
 
-  .title {
-    font-weight: 700;
-    font-size: 18px;
-    line-height: 1.5;
-    letter-spacing: 0.02em;
-  }
-
-  .toggle {
-    grid-area: toggle;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    min-height: 44px;
+  .event {
     font-family: var(--font-display);
-    font-weight: 600;
-    font-size: 16px;
-    letter-spacing: 0.06em;
+    font-weight: 700;
+    font-size: clamp(28px, 20px + 2vw, 44px);
+    line-height: 1.1;
   }
 
-  @media (prefers-reduced-motion: no-preference) {
-    .toggle :global(.icon) {
-      transition: transform 220ms var(--ease);
-    }
-  }
-
-  details[open] > summary .toggle :global(.icon),
-  .past[open] > summary :global(.icon) {
-    transform: rotate(180deg);
-  }
-
-  .flyer {
+  .facts {
     display: grid;
-    gap: 24px;
-    padding: 24px 16px 32px;
-    margin-inline: -16px;
-    background: var(--soot);
+    margin-top: 8px;
+    border-top: 1px solid rgb(13 12 11 / 0.3);
   }
 
-  .flyer img {
-    width: 100%;
-    max-width: 420px;
-  }
-
-  .details {
+  .facts > div {
     display: grid;
-    gap: 8px;
-    align-content: start;
+    grid-template-columns: 7.5em minmax(0, 1fr);
+    gap: 16px;
+    padding-block: 12px;
+    border-bottom: 1px solid rgb(13 12 11 / 0.3);
+  }
+
+  dt {
+    font-family: var(--font-display);
+    font-weight: 700;
     font-size: 15px;
+    letter-spacing: 0.06em;
+    line-height: 1.6;
   }
 
-  .details li:first-child {
+  dd {
+    margin: 0;
     font-weight: 500;
   }
 
-  @media (prefers-reduced-motion: no-preference) {
-    details[open] .flyer {
-      animation: open 260ms var(--ease);
-    }
+  .num {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 20px;
+    line-height: 1.3;
+    font-variant-numeric: tabular-nums;
   }
 
-  @keyframes open {
-    from {
-      opacity: 0;
-      transform: translateY(-8px);
-    }
+  .acts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 16px;
+    font-weight: 700;
+  }
+
+  .acts li:first-child {
+    text-decoration: underline;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 0.25em;
   }
 
   .empty {
@@ -255,62 +182,43 @@ const label = (l: Live) => `${l.month}月${l.day}日 ${l.venue}${l.title ? `「$
 
   .past {
     margin-top: 32px;
+    font-size: 13px;
+    font-weight: 500;
+  }
+
+  .past a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
     color: var(--ash);
   }
 
-  .past > summary {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    min-height: 44px;
-    font-weight: 700;
-  }
-
-  .past > summary:hover {
+  .past a:hover {
     color: var(--bone);
   }
 
-  .past-list li {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 4px 16px;
-    align-items: baseline;
-    padding-block: 12px;
-    border-top: 1px solid var(--line);
-  }
-
-  .past-list .date {
-    font-size: 24px;
-  }
-
-  /* タブレット以上: 日付と会場を横並び */
   @media (min-width: 768px) {
-    .live > summary,
-    .live.static {
-      grid-template-columns: minmax(4.2em, max-content) 1fr auto;
-      grid-template-areas: 'date info toggle';
-      align-items: center;
-      gap: 32px;
-      padding-block: 28px;
-    }
-
-    .row.next .live > summary,
-    .row.next .live.static {
-      padding-inline: 24px;
-      margin-inline: -24px;
-    }
-
-    .flyer {
-      grid-template-columns: 420px minmax(0, 36em);
-      gap: 40px;
-      padding: 32px 24px 40px;
-      margin-inline: -24px;
+    .next {
+      margin-inline: calc(var(--gutter) * -1);
+      padding: 48px var(--gutter);
     }
   }
 
+  /* PC: 日付を左、情報を右 */
   @media (min-width: 1200px) {
-    .info {
-      gap: 4px 32px;
+    .next {
+      grid-template-columns: auto minmax(0, 1fr);
+      gap: 64px;
+      align-items: end;
+      padding: 56px var(--gutter) 56px;
+    }
+
+    .md {
+      font-size: 280px;
+    }
+
+    .wd {
+      font-size: 24px;
     }
   }
 </style>

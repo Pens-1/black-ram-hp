@@ -1,0 +1,11 @@
+---
+import Page from '../layouts/Page.astro';
+import Videos from '../components/Videos.astro';
+import { photos } from '../data/site';
+
+const lead = photos.find((p) => p.src === '/img/photo/DcHOFc4E20Q-s17')!;
+---
+
+<Page title="VIDEO" description="BLACK RAM の動画。" photo={lead}>
+  <Videos />
+</Page>
