@@ -2,7 +2,7 @@
 
 ライブ・曲・グッズは Google スプレッドシートで更新する。サイトはビルドのたびにシートを読み直す。
 
-- シート: https://docs.google.com/spreadsheets/d/REMOVED-SHEET-ID/
+- シートの URL・ID は公開リポジトリに載せない。ID は Cloudflare Pages の環境変数 `SHEET_ID` と、手元の `.env`（git に入れない）にだけ置く
 - 共有は「リンクを知っている全員が閲覧可」のままにする（閲覧不可にするとサイトが更新されなくなる）
 
 ## バンド向け: 更新のしかた
@@ -24,7 +24,7 @@
 ## 仕組み
 
 - `npm run build` の前（`prebuild`）に `scripts/fetch-sheet.mjs` が3シートを CSV で読み、`src/data/sheet/lives.json` `songs.json` `goods.json` に書き出す。`src/data/site.ts` がそれをビルド時の日付で振り分ける
-- シート ID は環境変数 `SHEET_ID`（既定は上のシート）。取得・読み取りに失敗したシートは、コミット済みの前回の JSON でビルドを続ける
+- シート ID は環境変数 `SHEET_ID`（未設定なら取得せず前回の JSON を使う）。取得・読み取りに失敗したシートは、コミット済みの前回の JSON でビルドを続ける
 - 画像列: `/img/...` は `public/` の既存の WebP をそのまま使う。Google ドライブのリンクはダウンロードして `public/img/sheet/<ファイルID>.webp`（と一覧用の `-s.webp`）に変換。ファイル ID でキャッシュし、あれば変換し直さない。変換には ffmpeg か python3 + Pillow が要る。失敗したら画像なしで続く
 - 手元で読み直すだけ: `npm run sheet`。手元の CSV で試す: `SHEET_CSV_DIR=scripts/test/fixtures SHEET_OUT_DIR=/tmp/out npm run sheet`。テスト: `npm test`
 

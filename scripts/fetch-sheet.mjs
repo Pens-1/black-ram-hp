@@ -1,5 +1,5 @@
 // ビルド前（npm run build の prebuild）に Google スプレッドシートを読み、src/data/sheet/*.json に書き出す。
-// - シート ID は環境変数 SHEET_ID（既定は下の DEFAULT_SHEET_ID）。シートは「リンクを知っている全員が閲覧可」にしておく
+// - シート ID は環境変数 SHEET_ID（手元は .env に書く。公開リポジトリには載せない）。シートは「リンクを知っている全員が閲覧可」にしておく
 // - 取得・読み取りに失敗したシートは JSON を書き換えない（コミット済みの前回分でビルドを続ける）
 // - 不正な行は飛ばし、何行目をなぜ飛ばしたかをログに出す。「メモ」列は読まない（サイトに出さない）
 // - 画像列: /img/... はそのまま。Google ドライブの共有リンクはダウンロードして public/img/sheet/<ファイルID>.webp に変換
@@ -10,8 +10,8 @@ import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
-export const DEFAULT_SHEET_ID = 'REMOVED-SHEET-ID';
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
+if (existsSync(join(ROOT, '.env'))) process.loadEnvFile(join(ROOT, '.env'));
 const PUBLIC = join(ROOT, 'public');
 const SHEET_IMG = '/img/sheet';
 
@@ -348,7 +348,8 @@ export async function readSheet(sheetName, csv, log = console.log) {
 async function loadCsv(sheetName) {
   const dir = process.env.SHEET_CSV_DIR;
   if (dir) return readFileSync(join(resolve(dir), `${sheetName}.csv`), 'utf8');
-  const id = process.env.SHEET_ID || DEFAULT_SHEET_ID;
+  const id = process.env.SHEET_ID;
+  if (!id) throw new Error('環境変数 SHEET_ID が未設定');
   const url = `https://docs.google.com/spreadsheets/d/${encodeURIComponent(id)}/gviz/tq?tqx=out:csv&headers=1&sheet=${encodeURIComponent(sheetName)}`;
   const res = await fetch(url, { signal: AbortSignal.timeout(20_000) });
   const type = res.headers.get('content-type') ?? '';
@@ -360,7 +361,7 @@ async function loadCsv(sheetName) {
 export async function main({ log = console.log } = {}) {
   const outDir = resolve(process.env.SHEET_OUT_DIR || join(ROOT, 'src/data/sheet'));
   mkdirSync(outDir, { recursive: true });
-  log(`[sheet] ${process.env.SHEET_CSV_DIR ? `ローカルの CSV（${process.env.SHEET_CSV_DIR}）` : `スプレッドシート ${process.env.SHEET_ID || DEFAULT_SHEET_ID}`} を読む`);
+  log(`[sheet] ${process.env.SHEET_CSV_DIR ? `ローカルの CSV（${process.env.SHEET_CSV_DIR}）` : 'スプレッドシート'} を読む`);
   let failed = 0;
   for (const [sheetName, spec] of Object.entries(SHEETS)) {
     const out = join(outDir, spec.file);
