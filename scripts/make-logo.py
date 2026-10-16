@@ -8,7 +8,8 @@
 """
 import sys
 from pathlib import Path
-from PIL import Image, ImageOps
+import numpy as np
+from PIL import Image, ImageFilter
 
 root = Path(sys.argv[1] if len(sys.argv) > 1 else ".")
 src = Image.open(root / "assets/instagram/ig-DXPQaPFkXY6.jpg").convert("L")
@@ -40,9 +41,17 @@ def save(img: Image.Image, name: str, max_w: int):
     print(name, img.size)
 
 
-def remove_tongue(gray: Image.Image, band: tuple[int, int, int, int]) -> Image.Image:
-    """頭蓋骨から伸びる舌の断片を消す。
-    上端に触れる塊と、band (x0, y0, x1, y1) の中に収まる小さな塊を消す。"""
+def remove_skull_bits(
+    gray: Image.Image,
+    edges: tuple[str, ...] = (),
+    bands: tuple[tuple[int, int, int, int], ...] = (),
+    patch: tuple[int, int, int, int] | None = None,
+) -> Image.Image:
+    """文字の切り出しに入り込んだ頭蓋骨・舌の断片を消す。
+    edges: 'top' / 'bottom' … その辺に触れる塊を消す（頭蓋骨が切り口からはみ出したもの）
+    bands: (x0, y0, x1, y1) … この枠の中に収まる塊を消す（文字から離れた小片）
+    patch: (x0, y0, x1, y1) … 文字の筆跡に重なった断片を、枠内だけ筆跡の形に整えて塗り直す
+    """
     g = gray.copy()
     w, h = g.size
     px = g.load()
@@ -63,20 +72,53 @@ def remove_tongue(gray: Image.Image, band: tuple[int, int, int, int]) -> Image.I
                         stack.append((nx, ny))
             xs = [c[0] for c in comp]
             ys = [c[1] for c in comp]
-            x0, y0, x1, y1 = band
-            inside = min(xs) >= x0 and max(xs) <= x1 and min(ys) >= y0 and max(ys) <= y1
-            if min(ys) == 0 or inside:
+            drop = ("top" in edges and min(ys) == 0) or ("bottom" in edges and max(ys) == h - 1)
+            for x0, y0, x1, y1 in bands:
+                drop = drop or (min(xs) >= x0 and max(xs) <= x1 and min(ys) >= y0 and max(ys) <= y1)
+            if drop:
                 for c in comp:
                     px[c] = 0
+    if patch:
+        g = _repaint(g, patch)
     return g
+
+
+def _repaint(gray: Image.Image, box: tuple[int, int, int, int]) -> Image.Image:
+    """box 内で筆跡に重なった舌（輪郭線・トゲ・ベタ塗り）を消し、筆跡として塗り直す。
+    形はオープニング（トゲ除去）→クロージング（輪郭線の穴埋め）→ぼかし二値化で整え、
+    中身は box の外側の筆跡の明るさに粒状ノイズを足して塗る。"""
+    g = np.array(gray, dtype=np.float32)
+    x0, y0, x1, y1 = box
+    m = 16  # box の外側：形を整える余白で、塗り直しの手本にもなる
+    wx0, wy0, wx1, wy1 = x0 - m, y0 - m, x1 + m, y1 + m
+    win = g[wy0:wy1, wx0:wx1]
+    shape = Image.fromarray((win >= 28).astype(np.uint8) * 255)
+    shape = shape.filter(ImageFilter.MinFilter(9)).filter(ImageFilter.MaxFilter(9))
+    shape = shape.filter(ImageFilter.MaxFilter(17)).filter(ImageFilter.MinFilter(17))
+    shape = np.array(shape.filter(ImageFilter.GaussianBlur(3))) >= 128
+    inner = np.zeros_like(shape)
+    inner[m:-m, m:-m] = True
+    bad = shape & inner
+    # 中身は外側の筆跡の明るさ（中央値）に粒状ノイズを足し、縁はぼかしで暗く落とす
+    base = float(np.median(win[~inner & (win >= 120)]))
+    grain = np.random.default_rng(0).normal(128, 45, win.shape)
+    grain = np.array(Image.fromarray(np.clip(grain, 0, 255).astype(np.uint8)).filter(ImageFilter.GaussianBlur(0.8)))
+    edge = np.array(Image.fromarray(shape.astype(np.uint8) * 255).filter(ImageFilter.GaussianBlur(2))) / 255
+    painted = np.clip((base + (grain.astype(np.float32) - 128) * 1.6) * edge, 0, 240)
+    g[y0:y1, x0:x1] = np.where(bad, painted, 0)[m:-m, m:-m]
+    return Image.fromarray(g.astype(np.uint8))
 
 
 full = trim(to_alpha(src.crop((0, 300, 1440, 1720))))
 save(full, "logo-full", 1200)
 
 # 横組み: BLACK と RAM を切り出して横に並べる（頭蓋骨の舌が RAM に重なる部分は除く）
-black = trim(to_alpha(src.crop((40, 360, 1020, 860))))
-ram_gray = remove_tongue(src.crop((470, 1100, 1440, 1700)), (0, 0, 330, 250))
+# BLACK の下端には頭蓋骨の上部が、R の左上には舌先が入り込むので消す
+black_gray = remove_skull_bits(src.crop((40, 360, 1020, 860)), edges=("bottom",), bands=((0, 455, 980, 500),))
+black = trim(to_alpha(black_gray))
+ram_gray = remove_skull_bits(
+    src.crop((470, 1100, 1440, 1700)), edges=("top",), bands=((0, 0, 330, 250),), patch=(80, 178, 208, 242)
+)
 ram = trim(to_alpha(ram_gray))
 h = max(black.height, ram.height)
 gap = int(h * 0.18)
