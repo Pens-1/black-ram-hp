@@ -5,6 +5,9 @@
  * - 押すと、スクリプトプロパティ DEPLOY_HOOK_URL（Cloudflare Pages の deploy hook）に POST して作り直す
  * - 5分以内の連打は無視して「さっき反映しました」と出す
  * - setupDailyTrigger を1回実行すると、毎日1回（0時台）自動で反映する（日付が過ぎたライブを切り替えるため）
+ *
+ * @OnlyCurrentDoc
+ * （↑この行が、権限を「このシートだけ」に絞る。消さない。消すとアカウントの全スプレッドシートに触れる権限を求める）
  */
 
 var MENU_NAME = 'サイト';
