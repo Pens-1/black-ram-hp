@@ -21,14 +21,14 @@ export function srcset(i: Img): string {
 export const links = {
   instagram: 'https://www.instagram.com/black_______ram/',
   x: 'https://x.com/blackram0418',
-  tiktok: 'https://www.tiktok.com/@blackram__',
+  tiktok: 'https://www.tiktok.com/@blackram893',
   tunecore: 'https://www.tunecore.co.jp/artists?id=1109406',
 } as const;
 
 export const social = [
   { name: 'Instagram', icon: 'instagram', href: links.instagram, handle: 'black_______ram' },
   { name: 'X', icon: 'x', href: links.x, handle: 'blackram0418' },
-  { name: 'TikTok', icon: 'tiktok', href: links.tiktok, handle: '@blackram__' },
+  { name: 'TikTok', icon: 'tiktok', href: links.tiktok, handle: '@blackram893' },
 ] as const;
 
 /** トップ内の移動（ヘッダーとメニュー） */

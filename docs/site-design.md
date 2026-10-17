@@ -32,7 +32,7 @@
 ### リンク
 - Instagram: https://www.instagram.com/black_______ram/
 - X: https://x.com/blackram0418
-- TikTok: https://www.tiktok.com/@blackram__
+- TikTok: https://www.tiktok.com/@blackram893
 - TuneCore: https://www.tunecore.co.jp/artists?id=1109406
 
 ## 3. 状態
