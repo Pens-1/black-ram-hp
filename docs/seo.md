@@ -1,6 +1,6 @@
 # SEO / AIO（検索・AI検索）
 
-正式ドメインは https://blackram-music.com（`www` は apex に 301: `public/_redirects`）。設定は `src/data/seo-config.ts` の `SITE_URL` と `NOINDEX`。
+正式ドメインは https://blackram-music.com（`www` は apex に 301。Cloudflare のリダイレクトルール「WWW からルートにリダイレクト」で設定済み。`_redirects` はホスト名を見られないので使わない）。設定は `src/data/seo-config.ts` の `SITE_URL` と `NOINDEX`。
 
 ## noindex の外し方（本公開時）
 
