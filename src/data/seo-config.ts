@@ -5,12 +5,12 @@
 export const SITE_URL = 'https://blackram-music.com';
 
 /**
- * 検索エンジンに載せないか。デモ公開中は true。
+ * 検索エンジンに載せないか。本公開（2026-10-20）で false にした。デモ公開中は true。
  * true の間: 全ページの `<meta name="robots" content="noindex, nofollow">`、robots.txt の `Disallow: /`、
  * 全レスポンスの `X-Robots-Tag: noindex, nofollow`（ビルドで dist/_headers に出る）。
  * 本公開するときは false にするだけ（docs/seo.md）
  */
-export const NOINDEX = true;
+export const NOINDEX = false;
 
 /**
  * Google アナリティクス（GA4）の測定ID。公開してよい値（ページのソースに出る）。

@@ -2,7 +2,7 @@
 
 正式ドメインは https://blackram-music.com（`www` は apex に 301。Cloudflare のリダイレクトルール「WWW からルートにリダイレクト」で設定済み。`_redirects` はホスト名を見られないので使わない）。設定は `src/data/seo-config.ts` の `SITE_URL` と `NOINDEX`。
 
-## noindex の外し方（本公開時）
+## noindex の外し方（2026-10-20 に実施済み。再び止めるときは true に戻す）
 
 `src/data/seo-config.ts` の `NOINDEX` を `false` にして再ビルドするだけ。これで全ページの robots meta、`robots.txt` の `Disallow: /`（`Allow: /` に変わる）、`dist/_headers` の `X-Robots-Tag`（出なくなる）が一度に外れる。404 だけは常に noindex。外したあと、Search Console に `sitemap-index.xml` を登録する。`_redirects` の www→apex が効かない場合は、Cloudflare の Bulk Redirects で同じ 301 を作る。
 
