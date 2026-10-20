@@ -22,3 +22,8 @@
 | トップ | MusicAlbum | シート「曲」（作品名・発売日・ジャケット・linkco.re）。発売日が空なら datePublished なし |
 | トップ | MusicEvent | シート「ライブ」の今後のライブだけ（NEXT LIVE と同じ判定）。offers は料金かチケットのリンクがあるときだけ。住所は未確認なので出さない |
 | /goods/ | Product | シート「グッズ」。値段が読めるときだけ offers（売り切れ列で SoldOut / InStock） |
+
+## アクセス解析
+
+- Google アナリティクス（GA4）: 測定ID は `src/data/seo-config.ts` の `GA_ID`（公開してよい値）。`Base.astro` が本番ビルドだけに `gtag` を出す。ホスト名が `blackram-music.com`（と `www.`）以外（localhost・pages.dev）では送信しない。止めるときは `GA_ID` を空文字にする。
+- Cloudflare Web Analytics: ダッシュボードの Web 分析で `blackram-music.com` を追加済み（自動でスクリプトが入る。コードは触っていない）。

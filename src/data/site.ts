@@ -4,9 +4,9 @@
 import sheetLivesJson from './sheet/lives.json';
 import sheetSongsJson from './sheet/songs.json';
 import sheetGoodsJson from './sheet/goods.json';
-import { SITE_URL, NOINDEX } from './seo-config';
+import { SITE_URL, NOINDEX, GA_ID } from './seo-config';
 
-export { SITE_URL, NOINDEX };
+export { SITE_URL, NOINDEX, GA_ID };
 
 /** small: 一覧用の `-s.webp` があるか（省略時はある扱い） */
 export type Img = { src: string; w: number; h: number; alt: string; small?: boolean };

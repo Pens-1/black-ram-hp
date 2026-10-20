@@ -11,3 +11,9 @@ export const SITE_URL = 'https://blackram-music.com';
  * 本公開するときは false にするだけ（docs/seo.md）
  */
 export const NOINDEX = true;
+
+/**
+ * Google アナリティクス（GA4）の測定ID。公開してよい値（ページのソースに出る）。
+ * 空文字にすると GA を出さない。正式ドメイン以外（localhost・pages.dev）では動かさない（Base.astro）
+ */
+export const GA_ID = 'G-4671VRL71F';
