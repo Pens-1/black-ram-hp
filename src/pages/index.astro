@@ -7,12 +7,24 @@ import Music from '../components/Music.astro';
 import Live from '../components/Live.astro';
 import Tape from '../components/Tape.astro';
 import Footer from '../components/Footer.astro';
+import { eps, links, nextLive, SITE_URL, meta } from '../data/site';
+import { musicAlbumsLd, musicEventsLd, musicGroupLd, webSiteLd } from '../data/jsonld';
 
 // トップは「聴く → ライブ → フォロー」の順だけ（docs/site-design.md）。
 // PHOTO / VIDEO / GOODS / PROFILE / 過去のライブは全画面メニューから行く別ページ
 ---
 
-<Base>
+<Base
+  jsonLd={[
+    musicGroupLd(SITE_URL, links, meta.ogImage),
+    webSiteLd(SITE_URL),
+    ...musicAlbumsLd(
+      SITE_URL,
+      eps.map((e) => ({ title: e.title, kind: e.kind, release: e.release, href: e.href, cover: e.hasCover ? e.cover.src : undefined })),
+    ),
+    ...musicEventsLd(SITE_URL, nextLive ? [nextLive] : []),
+  ]}
+>
   <link slot="head" rel="preload" as="image" href="/logo/logo-full.webp" type="image/webp" />
   <!-- ロード時のロゴアニメーションを出すか: JSあり・動きを減らす設定なしのとき、リロードでも毎回出す -->
   <script slot="head" is:inline>

@@ -1,11 +1,21 @@
 ---
 import Page from '../layouts/Page.astro';
 import Goods from '../components/Goods.astro';
-import { goods } from '../data/site';
+import { goods, goodsItems, SITE_URL } from '../data/site';
+import { productsLd } from '../data/jsonld';
 
 const lead = goods.find((g) => g.src === '/img/goods/Db_ZAHkk-q8-s7')!;
 ---
 
-<Page title="GOODS" description="BLACK RAM のグッズ。" photo={lead}>
+<Page
+  title="GOODS"
+  seoTitle="グッズ"
+  description="BLACK RAM（京都のバンド）のグッズ。"
+  jsonLd={productsLd(
+    SITE_URL,
+    goodsItems.map((g) => ({ name: g.name, price: g.price, href: g.href, soldOut: g.soldOut, photo: g.photo?.src })),
+  )}
+  photo={lead}
+>
   <Goods exclude={lead.src} />
 </Page>

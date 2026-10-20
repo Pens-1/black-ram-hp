@@ -27,6 +27,7 @@ BLACK RAM（バンド）の公式HP。目的の優先順位:
   - RAM'S BALL（id 1726936）: Spotify https://open.spotify.com/album/6mcCk4SAouwsYp4cj9z692 / Apple Music https://music.apple.com/jp/album/rams-ball-single/6809121654 / YouTube Music https://music.youtube.com/playlist?list=OLAK5uy_nzqhtBYsp06Ly0y6DgxTSTPmwADggNwM0 / LINE MUSIC・Amazon Music は https://www.tunecore.co.jp/to/line/1726936 ・ https://www.tunecore.co.jp/to/amazon_music/1726936
   - BABY TANK（id 1807275）: Spotify https://open.spotify.com/album/7cgggJee3zl2h7IODPjS9p / Apple Music https://music.apple.com/jp/album/baby-tank-single/6776646587 / YouTube Music https://music.youtube.com/playlist?list=OLAK5uy_lPjwJIhKskSOvItgZ2u8nEhS-tL1s4UTE / LINE MUSIC・Amazon Music は https://www.tunecore.co.jp/to/line/1807275 ・ https://www.tunecore.co.jp/to/amazon_music/1807275
 - 次のライブ: 2026/10/20（火） 梅田 ODYSSEY「VOLTAGE」 OPEN 17:30 / START 18:00、ADV/DOOR ¥2,500（＋1D ¥700）。出演: BLACK RAM / Neo'n'eat / bloom in zero / Skade / PANdeMIX（出演順は未確認）。予約: 会場（電話 06-6940-4955 / LINE / メールフォーム）。前売予約の窓口かは未確認。出典 https://umeda-odyssey.com/event/1115
+- ドメイン: blackram-music.com に決定（2026-10-20、Cloudflare で購入予定）。BASE は shop.blackram-music.com を予定
 - SNS: Instagram black_______ram / X blackram0418 / TikTok @blackram893 / TuneCore アーティストページ
 - メンバー名・パート・拠点・プロフィール文・問い合わせ先: 未確認（創作禁止）
 - 物販（2026-10-17 本人たちより）: Tシャツ・CD。会場に加えて通販もしたい。ショップ（BASE 等）を誰のアカウントで作るかは審議中。商品ごとの値段・在庫・送料は未確認

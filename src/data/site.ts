@@ -4,6 +4,9 @@
 import sheetLivesJson from './sheet/lives.json';
 import sheetSongsJson from './sheet/songs.json';
 import sheetGoodsJson from './sheet/goods.json';
+import { SITE_URL, NOINDEX } from './seo-config';
+
+export { SITE_URL, NOINDEX };
 
 /** small: 一覧用の `-s.webp` があるか（省略時はある扱い） */
 export type Img = { src: string; w: number; h: number; alt: string; small?: boolean };
@@ -178,6 +181,12 @@ export type Service = { name: string; href: string };
 export type Ep = {
   title: string;
   cover: Img;
+  /** 作品の種類（EP など。シートの値） */
+  kind?: string;
+  /** 発売日 YYYY-MM-DD（シートの値。空なら省略） */
+  release?: string;
+  /** ジャケットがシートにあるか（なければ cover はロゴの代わり） */
+  hasCover?: boolean;
   /** linkco.re（全配信サービスの一覧） */
   href?: string;
   /** Spotify のアルバムID（埋め込みプレーヤー用） */
@@ -204,6 +213,9 @@ export const eps: Ep[] = sheetSongs
     return {
       title: s.title,
       cover,
+      kind: s.kind || undefined,
+      release: s.release || undefined,
+      hasCover: !!s.cover,
       href: s.href || undefined,
       spotify: s.spotify || undefined,
       services: s.services.length ? s.services : undefined,
@@ -311,7 +323,10 @@ export const windows = {
 };
 
 export const meta = {
-  title: 'BLACK RAM',
-  description: 'BLACK RAM 公式サイト。音源、次のライブ、SNS。',
+  title: 'BLACK RAM（京都のバンド）公式サイト',
+  /** og:site_name・JSON-LD の name */
+  name: 'BLACK RAM',
+  description: 'BLACK RAM（京都のバンド）の公式サイト。EPをその場で聴ける。次のライブ、SNS。',
   ogImage: '/og.jpg',
+  ogImageAlt: 'BLACK RAM のロゴ',
 };

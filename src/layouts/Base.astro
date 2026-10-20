@@ -1,15 +1,20 @@
 ---
 import '../styles/global.css';
-import { meta } from '../data/site';
+import { meta, NOINDEX } from '../data/site';
+import { toJsonLd } from '../data/jsonld';
 
 interface Props {
   title?: string;
   description?: string;
   noindex?: boolean;
+  /** 構造化データ（JSON-LD）。配列なら1つずつ script にする */
+  jsonLd?: object[];
 }
-const { title = meta.title, description = meta.description, noindex = false } = Astro.props;
-const abs = (p: string) => (Astro.site ? new URL(p, Astro.site).href : p);
-const canonical = Astro.site ? new URL(Astro.url.pathname, Astro.site).href : undefined;
+const { title = meta.title, description = meta.description, noindex = false, jsonLd = [] } = Astro.props;
+const abs = (p: string) => new URL(p, Astro.site).href;
+const canonical = abs(Astro.url.pathname);
+// 検索に載せないか: 全体フラグ（src/data/seo-config.ts）か、ページ単位（404 など）
+const hideFromSearch = NOINDEX || noindex;
 ---
 
 <!doctype html>
@@ -19,22 +24,26 @@ const canonical = Astro.site ? new URL(Astro.url.pathname, Astro.site).href : un
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{title}</title>
     <meta name="description" content={description} />
-    {/* デモ公開中は全ページ noindex。正式公開時にこの1行を消し、下の noindex 行を戻す */}
-    <meta name="robots" content="noindex, nofollow" />
-    {/* {noindex && <meta name="robots" content="noindex" />} */}
-    {canonical && <link rel="canonical" href={canonical} />}
+    {/* デモ公開中は全ページ noindex。外すときは src/data/seo-config.ts の NOINDEX を false に（docs/seo.md） */}
+    {hideFromSearch && <meta name="robots" content="noindex, nofollow" />}
+    {!noindex && <link rel="canonical" href={canonical} />}
     <meta name="theme-color" content="#0d0c0b" />
 
     <meta property="og:type" content="website" />
-    <meta property="og:site_name" content={meta.title} />
+    <meta property="og:site_name" content={meta.name} />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:image" content={abs(meta.ogImage)} />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
     <meta property="og:locale" content="ja_JP" />
-    {canonical && <meta property="og:url" content={canonical} />}
+    <meta property="og:image:alt" content={meta.ogImageAlt} />
+    {!noindex && <meta property="og:url" content={canonical} />}
     <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={abs(meta.ogImage)} />
+    {jsonLd.map((d) => <script type="application/ld+json" set:html={toJsonLd(d)} />)}
 
     <link rel="icon" href="/favicon-32.png" sizes="32x32" type="image/png" />
     <link rel="icon" href="/icon-512.png" sizes="512x512" type="image/png" />

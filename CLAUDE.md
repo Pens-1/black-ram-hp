@@ -5,3 +5,4 @@
 - ライブ・曲・グッズの中身は Google スプレッドシートが正。`src/data/sheet/*.json` はビルド前に `scripts/fetch-sheet.mjs` が書き出すので手で直さない（`docs/sheet-update.md`）
 - コミット前に `npm test`・`npm run lint`・`npm run build`
 - 進め方は web-design-flow スキルに従う
+- SEO・構造化データ・noindex の外し方は `docs/seo.md`（フラグは `src/data/seo-config.ts`）
