@@ -1,0 +1,38 @@
+---
+import { eps, nextLive } from '../data/site';
+import { introParts } from '../data/intro-text';
+
+// 検索用の短い紹介文（事実だけ。曲・ライブはシートの値から組み立てる。docs/seo.md）
+const { latest, live } = introParts(eps, nextLive);
+---
+
+<section class="wrap about" aria-label="BLACK RAM について">
+  <p class="note">
+    BLACK RAM は京都のバンド。{
+      latest && (
+        <>
+          最新作は{latest.kind}
+          <span class="nowrap">「{latest.title}」</span>。
+        </>
+      )
+    }{
+      live && (
+        <span data-tape-ends={nextLive?.endsAt}>
+          次のライブは{live.date}、<span class="nowrap">{live.venue}</span>。
+        </span>
+      )
+    }
+  </p>
+</section>
+
+<style>
+  .about {
+    padding-block: 0 32px;
+  }
+
+  .about p {
+    max-width: 36em;
+    letter-spacing: 0.04em;
+    text-wrap: pretty;
+  }
+</style>

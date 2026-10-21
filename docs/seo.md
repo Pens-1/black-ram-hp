@@ -12,6 +12,10 @@
 - sitemap: `@astrojs/sitemap`（`sitemap-index.xml`）。noindex の間も生成する。robots.txt は `src/pages/robots.txt.ts` が出す（Sitemap 行つき）
 - `public/llms.txt`: バンド名・公式URL・SNS・ページ一覧。ページを足したら更新する
 
+## ホーム下部の紹介文
+
+`src/components/About.astro`（LIVE の下、フッターの手前）。「BLACK RAM は京都のバンド。最新作は EP「○○」。次のライブは○月○日、会場。」を、シートの曲の先頭（最新作）と次のライブから `src/data/intro-text.ts` で組み立てる。ライブが無い・終わったときはその文を出さない（表示時も `data-tape-ends` で隠す）。メンバー・結成年・ジャンルは未確認なので書かない。
+
 ## 構造化データ（JSON-LD）の出どころ
 
 生成は `src/data/jsonld.ts`（`JSON.stringify` ＋ `< > &` のエスケープ）。値はシートの JSON（`src/data/sheet/*.json`、`docs/sheet-update.md`）と `site.ts` のリンクだけで、創作しない。
